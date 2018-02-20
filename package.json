@@ -1,0 +1,25 @@
+{
+  "name": "russo-georgian-simulation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/petschekr/Russo-Georgian-Simulation.git"
+  },
+  "author": "Ryan Petschek",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/petschekr/Russo-Georgian-Simulation/issues"
+  },
+  "homepage": "https://github.com/petschekr/Russo-Georgian-Simulation#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/geojson": "^7946.0.1",
+    "@types/mapbox-gl": "^0.43.3",
+    "typescript": "^2.7.2"
+  }
+}
