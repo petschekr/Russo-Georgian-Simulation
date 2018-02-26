@@ -22,4 +22,6 @@ abstract class AgentCollection<T extends Agent> implements Entity {
 	public tick(secondsElapsed: number): void {
 		// Do something
 	}
+
+	public split()
 }

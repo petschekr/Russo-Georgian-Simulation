@@ -32,7 +32,7 @@ export abstract class Agent implements Entity {
 	public readonly id: string = "N/A";
 	public location: Vector2;
 
-	constructor(location: Vector2) {
+	constructor(location: Vector2, waypoints: Vector2[]) {
 		this.location = location;
 	}
 
@@ -41,3 +41,12 @@ export abstract class Agent implements Entity {
 	}
 }
 
+export class InfantrySquad extends Agent implements Unit {
+	private static creationCount = 0;
+	public readonly id: string;
+
+	constructor(location: Vector2) {
+		super(location);
+		this.id = `Squad_${InfantrySquad.creationCount++}`;
+	}
+}
