@@ -3,41 +3,41 @@ import { Weapon } from "./weapons";
 
 interface Unit {
 	location: Vector2;
-	rotation: number;
+	rotation: number; // In radians
 
 	outOfAction: boolean;
-	outOfActionDecay: number;
+	outOfActionDecay: number // In seconds
 	blocksOthers: boolean;
 
-	speed: number;
-	rotationSpeed: number;
-	maxClimbAbility: number;
+	speed: number; // In meters / second
+	rotationSpeed: number; // In radians / second
+	maxClimbAbility: number; // In 10 meter grade average
 
 	visibility: {
-		range: number;
-		fieldOfView: number;
+		range: number; // In meters
+		fieldOfView: number; // In radians, centered on this.rotation
 	};
 	
 	weapons: Weapon[];
 	ammunition: {
-		magazine: number;
-		total: number;
+		magazine: number; // Magazine capacity
+		total: number; // Total number of rounds
 		canResupply: boolean;
 	};
 	
-	health: number;
-	morale: number;
+	health: number; // Percentage
 }
 
-abstract class Agent implements Entity, Unit {
-	public readonly id: string;
+export abstract class Agent implements Entity {
+	public readonly id: string = "N/A";
 	public location: Vector2;
 
-	constructor(location?: Vector2) {
-
+	constructor(location: Vector2) {
+		this.location = location;
 	}
 
-	public randomizeLocation(): void {
-
+	public tick(secondsElapsed: number): void {
+		// Do something
 	}
 }
+
