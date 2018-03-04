@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/petschekr/Russo-Georgian-Simulation#readme",
   "dependencies": {
-    "@turf/turf": "^5.1.6"
+    "@turf/turf": "^5.1.6",
+    "express": "^4.16.2"
   },
   "devDependencies": {
     "@types/geojson": "^7946.0.1",

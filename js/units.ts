@@ -1,5 +1,5 @@
 import { Vector2, Waypoint, Entity, Utilities } from "./common";
-import { Weapon, Weapons } from "./weapons";
+import { Weapon, Weapons, UnitType } from "./weapons";
 
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
@@ -10,7 +10,8 @@ type WeaponAmmunitionPair = [Weapon, {
 	canResupply: boolean;
 }];
 
-export interface Unit {
+export interface Unit extends Entity {
+	type: UnitType;
 	location: Vector2;
 	waypoints: Waypoint[];
 	rotation: number; // In radians
@@ -40,7 +41,9 @@ export interface Unit {
 	debugString(): string;
 }
 
-export abstract class Agent implements Entity, Unit {
+export abstract class Agent implements Unit {
+	public readonly type: UnitType = UnitType.None;
+
 	public readonly id: string = "N/A";
 	public location: Vector2;
 	public waypoints: Waypoint[];
@@ -106,6 +109,8 @@ export abstract class Agent implements Entity, Unit {
 }
 
 export class TankT55 extends Agent implements Unit {
+	public readonly type = UnitType.HeavyArmor;
+
 	private static creationCount = 0;
 	public readonly id: string;
 
@@ -149,6 +154,8 @@ export class TankT55 extends Agent implements Unit {
 }
 
 export class InfantrySquad extends Agent implements Unit {
+	public readonly type = UnitType.Infantry;
+
 	private static creationCount = 0;
 	public readonly id: string;
 
