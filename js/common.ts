@@ -10,8 +10,10 @@ export interface Entity {
     readonly id: string;
 	location: Vector2;
 	
-	tick(time: Date, secondsElapsed: number): void; // Do something every time iteration
+	tick(time: number, secondsElapsed: number): void; // Do something every time iteration
 }
+
+export const NAVIGATION_THRESHOLD = 1 / 10; // 1 / 10 of a kilometer
 
 export class Utilities {
 	static randomFloat(max: number = 1): number {
@@ -64,7 +66,7 @@ export class Dispatcher {
 		this.time.setSeconds(this.time.getSeconds() + this.secondsPerTick);
 
 		for (let entity of this.entities) {
-			entity.tick(this.time, this.secondsPerTick);
+			entity.tick(this.time.valueOf() / 1000, this.secondsPerTick);
 		}
 	}
 }

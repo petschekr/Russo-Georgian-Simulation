@@ -1,4 +1,4 @@
-import { Vector2, Waypoint, Entity, Utilities } from "./common";
+import { Vector2, Waypoint, Entity, Utilities, NAVIGATION_THRESHOLD } from "./common";
 import { Weapon, Weapons, UnitType } from "./weapons";
 
 import * as _turf from "@turf/turf";
@@ -15,7 +15,6 @@ export abstract class Unit {
 	public abstract readonly type: UnitType;
 
 	public abstract location: Vector2;
-	public abstract waypoints: Waypoint[];
 	public abstract rotation: number; // In radians
 
 	public abstract outOfAction: boolean;
@@ -38,44 +37,42 @@ export abstract class Unit {
 	public abstract weapons: WeaponAmmunitionPair[];
 	public abstract health: number; // Health points
 
+	private path: _turf.helpers.Feature<_turf.helpers.LineString, _turf.helpers.Properties> = turf.lineString([[0, 0], [0, 0]]);
+	private navigationBegin: number = 0;
+	private destination: Waypoint = { location: [0, 0], time: new Date() };
 	private destinationArrived = false;
 
 	constructor() {
 		
 	}
 
-	public addWaypoints(waypoints: Waypoint | Waypoint[]) {
-		this.waypoints = this.waypoints.concat(waypoints);
-	}
-
 	public debugString(): string {
-		return `lat: ${this.location[1]}, long: ${this.location[0]}, rotation: ${Utilities.radiansToDegrees(this.rotation)}, pending waypoints: ${this.waypoints.length}`
+		return `lat: ${this.location[1]}, long: ${this.location[0]}, rotation: ${Utilities.radiansToDegrees(this.rotation)}`
 	}
 
-	public tick(time: Date, secondsElapsed: number): void {
-		// Use value without actually using it
-		secondsElapsed;
-
-		// Move to next waypoint
-		if (this.waypoints.length < 1) {
-			return;
-		}
+	public updatePath(time: number, navPoints: Vector2[], destination: Waypoint): void {
+		this.navigationBegin = time;
+		this.destination = destination;
+		this.destinationArrived = false;
+		this.path = turf.lineString([this.location, ...navPoints]);
+	}
+	public navigate(time: number): boolean {
+		// Move to next navpoint (intermedite routed points to next waypoint contained in collection)
 		if (!this.destinationArrived) {
-			let path = turf.shortestPath(this.location, this.waypoints[0].location);
-			let newLocation = turf.along(path, this.speed, { units: "meters" });
+			let secondsNavigating = time - this.navigationBegin;
+			let newLocation = turf.along(this.path, this.speed * secondsNavigating, { units: "meters" });
 			this.location = newLocation.geometry!.coordinates as [number, number];
 		}
-		if (turf.distance(this.location, this.waypoints[0].location, { units: "kilometers" }) < 1 / 10) {
+		if (turf.distance(this.location, this.destination.location, { units: "kilometers" }) < NAVIGATION_THRESHOLD) {
 			// Destination arrived (within 100 meters)
-			if (time.valueOf() < this.waypoints[0].time.valueOf()) {
-				// Pause until time reached
-				this.destinationArrived = true;
-			}
-			else {
-				this.waypoints.shift();
-				this.destinationArrived = false;
-			}
+			this.destinationArrived = true;
+			return true;
 		}
+		return false;
+	}
+	public tick(secondsElapsed: number): void {
+		secondsElapsed;
+		// Engage enemy units
 	}
 }
 
@@ -83,7 +80,6 @@ export class TankT55 extends Unit {
 	public readonly id: string;
 	public readonly type = UnitType.HeavyArmor;
 	public location: Vector2;
-	public waypoints: Waypoint[];
 	public rotation = 0;
 
 	private static creationCount = 0;
@@ -121,11 +117,10 @@ export class TankT55 extends Unit {
 	];
 	public health: number = 1000;
 
-	constructor(location: Vector2, waypoints?: Waypoint[]) {
+	constructor(location: Vector2) {
 		super();
 		this.id = `T-55_${TankT55.creationCount++}`;
 		this.location = location;
-		this.waypoints = waypoints || [];
 	}
 }
 
@@ -133,7 +128,6 @@ export class InfantrySquad extends Unit {
 	public readonly id: string;
 	public readonly type = UnitType.Infantry;
 	public location: Vector2;
-	public waypoints: Waypoint[];
 	public rotation = 0;
 	
 	private static creationCount = 0;
@@ -166,10 +160,9 @@ export class InfantrySquad extends Unit {
 	];
 	public health: number = 100 * this.memberCount;
 
-	constructor(location: Vector2, waypoints?: Waypoint[]) {
+	constructor(location: Vector2) {
 		super();
 		this.id = `InfantrySquad(${this.memberCount})_${InfantrySquad.creationCount++}`;
 		this.location = location;
-		this.waypoints = waypoints || [];
 	}
 }

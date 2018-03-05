@@ -1,19 +1,23 @@
-import { Vector2, Waypoint, Entity, Team } from "./common";
+import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD } from "./common";
 import { Unit, TankT55, InfantrySquad } from "./units";
+import { UnitType } from "./weapons";
 import { getDirections, terrainFeatures } from "./mapdata";
 import { map } from "./main";
 
 import * as _turf from "@turf/turf";
-import { UnitType } from "./weapons";
 declare const turf: typeof _turf;
 
 // Groups of infantry, tanks, etc.
 abstract class AgentCollection<T extends Unit> implements Entity {
 	public readonly id: string;
+	public abstract readonly type: UnitType;
 	protected _team: Team = Team.None;
 	public get team(): Team { return this._team }
+
 	public waypoints: Waypoint[];
 	public intermediatePoints: Vector2[];
+	private navigationCalculated: boolean = false;
+	private navigating : boolean = false;
 
 	public units: T[];
 
@@ -53,27 +57,62 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		}
 
 		this.drawInit();
-		// TEMPORARY
-		this.navigate();
-		terrainFeatures(this.location).then(terrain => {
-			console.log(terrain.terrain, terrain.elevation);
-		});
+		
+		// terrainFeatures(this.location).then(terrain => {
+		// 	console.log(terrain.terrain, terrain.elevation);
+		// });
 	}
 
-	private async navigate(): Promise<void> {
-		let next = this.waypoints.shift();
-		if (!next) {
+	// Navigation occurs on the unit collection level and instructions get
+	// propogated downwards to the individual units
+	private async calculateNavigation(): Promise<void> {
+		if (this.waypoints.length <= 0) {
 			return;
 		}
-		this.intermediatePoints = await getDirections(this.location, next.location, UnitType.HeavyArmor);
+		
+		let next = this.waypoints[0];
+		this.intermediatePoints = await getDirections(this.location, next.location, this.type);
 		this.sources.get("path")!.source.setData(turf.lineString(this.intermediatePoints));
+
+		this.navigationCalculated = true;
 	}
 
-	public tick(time: Date, secondsElapsed: number): void {
+	public tick(time: number, secondsElapsed: number): void {
+		if (this.waypoints[0] && turf.distance(this.waypoints[0].location, this.location) < NAVIGATION_THRESHOLD) {
+			// Destination reached
+			if (time >= this.waypoints[0].time.valueOf() / 1000) {
+				// Only advance to next waypoint when time matches up
+				this.waypoints.shift();
+				this.navigationCalculated = false;
+				this.navigating = false;
+				if (this.waypoints.length === 0) {
+					console.log(`${this.id} is done with navigation!`);
+					// Hide intermediate points path
+					map.setLayoutProperty(this.sources.get("path")!.id, "visibility", "none");
+				}
+				else {
+					console.log(`${this.id} moving to next objective. ${this.waypoints.length - 1} remaining.`);
+				}
+			}
+		}
+		if (!this.navigating && !this.navigationCalculated) {
+			this.calculateNavigation();
+		}
+		else if (!this.navigating && this.navigationCalculated) {
+			for (let unit of this.units) {
+				unit.updatePath(time, this.intermediatePoints, this.waypoints[0]);
+			}
+			this.navigating = true;
+		}
 		// Tick through subunits
 		for (let unit of this.units) {
-			unit.tick(time, secondsElapsed);
+			if (this.navigating) {
+				unit.navigate(time);
+			}
+			unit.tick(secondsElapsed);
 		}
+		// Update location on map
+		this.sources.get("location")!.source.setData(turf.point(this.location));
 	}
 
 	private drawInit(): void {
@@ -127,7 +166,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 			// "minzoom": 11,
 			"paint": {
 				"line-color": this.color,
-				"line-width": 8,
+				"line-width": 6,
 				"line-opacity": 0.9
 			}
 		});
@@ -176,25 +215,33 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 }
 
 export class InfantryBattalion extends AgentCollection<InfantrySquad> {
+	public readonly type: UnitType;
+
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let units: InfantrySquad[] = [];
 		for (let i = 0; i < unitNumber; i++) {
-			units.push(new InfantrySquad(location, waypoints));
+			units.push(new InfantrySquad(location));
 		}
 
 		let id = `InfantryBattalion_${Team[team]}_${name}`;
 		super(id, team, units, waypoints);
+
+		this.type = UnitType.Infantry;
 	}
 }
 
 export class TankBattalion extends AgentCollection<TankT55> {
+	public readonly type: UnitType;
+
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let units: TankT55[] = [];
 		for (let i = 0; i < unitNumber; i++) {
-			units.push(new TankT55(location, waypoints));
+			units.push(new TankT55(location));
 		}
 
 		let id = `InfantryBattalion_${Team[team]}_${name}`;
 		super(id, team, units, waypoints);
+
+		this.type = UnitType.HeavyArmor;
 	}
 }

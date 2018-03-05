@@ -30,14 +30,14 @@ export const map = new mapboxgl.Map({
 
 function initializeUnits(): Entity[] {
 	return [
-		new InfantryBattalion([43.936281, 42.150163], 100, [
+		new InfantryBattalion([43.936281, 42.150163], 5, [
 			{ location: [43.89000000, 42.20582778], time: new Date("2008-08-08T01:30:00+04:00") },
 			{ location: [43.95472222, 42.22019722], time: new Date("2008-08-08T06:00:00+04:00") },
 			{ location: [43.97388889, 42.18781389], time: new Date("2008-08-08T10:30:00+04:00") },
 			{ location: [43.97305556, 42.22945556], time: new Date("2008-08-08T19:00:00+04:00") },
 			{ location: [43.97388889, 42.18781389], time: new Date("2008-08-09T15:00:00+04:00") },
 		], "41st Battalion", Team.Georgia),
-		new TankBattalion([44.09646, 42.62257], 100, [
+		new TankBattalion([44.09646, 42.62257], 5, [
 			{ location: [44.117457, 42.563961], time: new Date("2008-08-08T02:00:00+04:00") },
 			{ location: [43.889027, 42.216375], time: new Date("2008-08-08T19:00:00+04:00") },
 			{ location: [43.934524, 42.225263], time: new Date("2008-08-09T14:00:00+04:00") },
