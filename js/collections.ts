@@ -1,6 +1,6 @@
 import { Vector2, Waypoint, Entity, Team } from "./common";
 import { Unit, TankT55, InfantrySquad } from "./units";
-import { getDirections } from "./directions";
+import { getDirections, terrainFeatures } from "./mapdata";
 import { map } from "./main";
 
 import * as _turf from "@turf/turf";
@@ -72,9 +72,12 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		this.drawInit();
 		// TEMPORARY
 		this.navigate();
+		terrainFeatures(this.location).then(terrain => {
+			console.log(terrain.terrain, terrain.elevation);
+		});
 	}
 
-	public async navigate(): Promise<void> {
+	private async navigate(): Promise<void> {
 		let next = this.waypoints.shift();
 		if (!next) {
 			return;

@@ -53,6 +53,9 @@ export abstract class Unit {
 	}
 
 	public tick(time: Date, secondsElapsed: number): void {
+		// Use value without actually using it
+		secondsElapsed;
+
 		// Move to next waypoint
 		if (this.waypoints.length < 1) {
 			return;

@@ -37,7 +37,7 @@ function initializeUnits(): Entity[] {
 			{ location: [43.97305556, 42.22945556], time: new Date("2008-08-08T19:00:00+04:00") },
 			{ location: [43.97388889, 42.18781389], time: new Date("2008-08-09T15:00:00+04:00") },
 		], "41st Battalion", Team.Georgia),
-		new TankBattalion([44.092997, 42.620822], 100, [
+		new TankBattalion([44.09646, 42.62257], 100, [
 			{ location: [44.117457, 42.563961], time: new Date("2008-08-08T02:00:00+04:00") },
 			{ location: [43.889027, 42.216375], time: new Date("2008-08-08T19:00:00+04:00") },
 			{ location: [43.934524, 42.225263], time: new Date("2008-08-09T14:00:00+04:00") },
