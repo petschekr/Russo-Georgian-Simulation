@@ -1,3 +1,5 @@
+declare const moment: any;
+
 export type Vector2 = [number, number]; // Note! Longitude, Latitude (x, y)
 export interface Waypoint {
 	location: Vector2,
@@ -37,8 +39,7 @@ export class Dispatcher {
 
 	private time: Date;
 	get formattedTime(): string {
-		// TODO: Fix this later
-		return this.time.toUTCString();
+		return moment(this.time).utc().format("DD MMM YY HHmm[Z]");
 	}
 
 	public entities: Entity[];
