@@ -10,70 +10,38 @@ type WeaponAmmunitionPair = [Weapon, {
 	canResupply: boolean;
 }];
 
-export interface Unit extends Entity {
-	type: UnitType;
-	location: Vector2;
-	waypoints: Waypoint[];
-	rotation: number; // In radians
+export abstract class Unit {
+	public abstract readonly id: string;
+	public abstract readonly type: UnitType;
 
-	outOfAction: boolean;
-	outOfActionDecay: number // In seconds
-	blocksOthers: boolean;
+	public abstract location: Vector2;
+	public abstract waypoints: Waypoint[];
+	public abstract rotation: number; // In radians
 
-	speed: number; // In meters / second on improved surface like a road
-	rotationSpeed: number; // In radians / second
-	maxClimbAbility: number; // Slope (meters/meter)
-	movement: {
+	public abstract outOfAction: boolean;
+	public abstract outOfActionDecay: number // In seconds
+	public abstract blocksOthers: boolean;
+
+	public abstract speed: number; // In meters / second on improved surface like a road
+	public abstract rotationSpeed: number; // In radians / second
+	public abstract maxClimbAbility: number; // Slope (meters/meter)
+	public abstract movement: {
 		steppe: number;
 		forest: number;
 		urban: number;
 	};
-
-	visibility: {
+	public abstract visibility: {
 		range: number; // In meters
 		fieldOfView: number; // In radians, centered on this.rotation
 	};
 	
-	weapons: WeaponAmmunitionPair[];
-	
-	health: number; // Percentage
-
-	debugString(): string;
-}
-
-export abstract class Agent implements Unit {
-	public readonly type: UnitType = UnitType.None;
-
-	public readonly id: string = "N/A";
-	public location: Vector2;
-	public waypoints: Waypoint[];
-	public rotation = NaN;
-	public health: number;
-
-	// Satisfies the implements Unit
-	public outOfAction = false;
-	public outOfActionDecay = NaN;
-	public blocksOthers = true;
-	public speed = NaN;
-	public rotationSpeed = Infinity;
-	public maxClimbAbility = NaN;
-	public movement = {
-		steppe: NaN,
-		forest: NaN,
-		urban: NaN
-	};
-	public visibility = {
-		range: NaN,
-		fieldOfView: 0
-	};
-	public weapons: WeaponAmmunitionPair[] = [];
+	public abstract weapons: WeaponAmmunitionPair[];
+	public abstract health: number; // Health points
 
 	private destinationArrived = false;
 
-	constructor(location: Vector2, waypoints?: Waypoint[]) {
-		this.location = location;
-		this.waypoints = waypoints || [];
-		this.health = 100;
+	constructor() {
+		
 	}
 
 	public addWaypoints(waypoints: Waypoint | Waypoint[]) {
@@ -108,13 +76,15 @@ export abstract class Agent implements Unit {
 	}
 }
 
-export class TankT55 extends Agent implements Unit {
+export class TankT55 extends Unit {
+	public readonly id: string;
 	public readonly type = UnitType.HeavyArmor;
+	public location: Vector2;
+	public waypoints: Waypoint[];
+	public rotation = 0;
 
 	private static creationCount = 0;
-	public readonly id: string;
 
-	public rotation = 0;
 
 	public outOfAction = false;
 	public outOfActionDecay = 60 * 15;
@@ -146,20 +116,25 @@ export class TankT55 extends Agent implements Unit {
 			canResupply: false
 		}]
 	];
+	public health: number = 1000;
 
 	constructor(location: Vector2, waypoints?: Waypoint[]) {
-		super(location, waypoints);
+		super();
 		this.id = `T-55_${TankT55.creationCount++}`;
+		this.location = location;
+		this.waypoints = waypoints || [];
 	}
 }
 
-export class InfantrySquad extends Agent implements Unit {
-	public readonly type = UnitType.Infantry;
-
-	private static creationCount = 0;
+export class InfantrySquad extends Unit {
 	public readonly id: string;
-
+	public readonly type = UnitType.Infantry;
+	public location: Vector2;
+	public waypoints: Waypoint[];
 	public rotation = 0;
+	
+	private static creationCount = 0;
+	protected memberCount: number = 4; // Soldiers in squad, multiply ammo by this
 
 	public outOfAction = false;
 	public outOfActionDecay = 60 * 5;
@@ -186,11 +161,12 @@ export class InfantrySquad extends Agent implements Unit {
 			canResupply: false
 		}]
 	];
-
-	protected memberCount: number = 4; // Soldiers in squad, multiply ammo by this
+	public health: number = 100 * this.memberCount;
 
 	constructor(location: Vector2, waypoints?: Waypoint[]) {
-		super(location, waypoints);
+		super();
 		this.id = `InfantrySquad(${this.memberCount})_${InfantrySquad.creationCount++}`;
+		this.location = location;
+		this.waypoints = waypoints || [];
 	}
 }

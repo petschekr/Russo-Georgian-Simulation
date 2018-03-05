@@ -1,4 +1,4 @@
-import { InfantrySquad, TankT55, Agent } from "./units";
+import { InfantrySquad, TankT55, Unit } from "./units";
 
 export enum UnitType {
 	None,
@@ -24,7 +24,10 @@ export namespace Weapons {
 		name: "AK-74",
 		range: 300,
 		efficacy: new Map([
-			[UnitType.Infantry, 100]
+			[UnitType.Infantry, 1],
+			[UnitType.UnarmoredVehicle, 0.8],
+			[UnitType.LightArmor, 0.05],
+			[UnitType.HeavyArmor, 0.01]
 		]),
 		fireRate: 100,
 		terminalEffect: 0
@@ -33,7 +36,10 @@ export namespace Weapons {
 		name: "152mm SpGH DANA",
 		range: 18000,
 		efficacy: new Map([
-			[UnitType.Infantry, 100]
+			[UnitType.Infantry, 1],
+			[UnitType.UnarmoredVehicle, 1],
+			[UnitType.LightArmor, 0.5],
+			[UnitType.HeavyArmor, 0.5]
 		]),
 		fireRate: 3,
 		terminalEffect: 75
@@ -42,7 +48,10 @@ export namespace Weapons {
 		name: "T-55 D-10",
 		range: 1400,
 		efficacy: new Map([
-			[UnitType.Infantry, 100]
+			[UnitType.Infantry, 0.9],
+			[UnitType.UnarmoredVehicle, 1],
+			[UnitType.LightArmor, 1],
+			[UnitType.HeavyArmor, 1]
 		]),
 		fireRate: 4,
 		terminalEffect: 10
@@ -51,7 +60,10 @@ export namespace Weapons {
 		name: "T-55 SGMT",
 		range: 1000,
 		efficacy: new Map([
-			[UnitType.Infantry, 100]
+			[UnitType.Infantry, 1],
+			[UnitType.UnarmoredVehicle, 0.95],
+			[UnitType.LightArmor, 0.05],
+			[UnitType.HeavyArmor, 0.05]
 		]),
 		fireRate: 600,
 		terminalEffect: 0

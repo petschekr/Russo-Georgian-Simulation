@@ -1,5 +1,5 @@
 import { Vector2, Waypoint, Entity, Team } from "./common";
-import { Agent, TankT55, InfantrySquad } from "./units";
+import { Unit, TankT55, InfantrySquad } from "./units";
 import { getDirections } from "./directions";
 import { map } from "./main";
 
@@ -7,7 +7,7 @@ import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
 
 // Groups of infantry, tanks, etc.
-abstract class AgentCollection<T extends Agent> implements Entity {
+abstract class AgentCollection<T extends Unit> implements Entity {
 	public readonly id: string;
 	protected _team: Team = Team.None;
 	public get team(): Team { return this._team }
