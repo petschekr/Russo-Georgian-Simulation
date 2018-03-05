@@ -4,6 +4,7 @@ import { getDirections, terrainFeatures } from "./mapdata";
 import { map } from "./main";
 
 import * as _turf from "@turf/turf";
+import { UnitType } from "./weapons";
 declare const turf: typeof _turf;
 
 // Groups of infantry, tanks, etc.
@@ -16,10 +17,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 
 	public units: T[];
 
-	private readonly locationSourceID: string;
-	private locationSource: mapboxgl.GeoJSONSource;
-	private readonly pathSourceID: string;
-	private pathSource: mapboxgl.GeoJSONSource;
+	private sources: Map<string, { id: string, source: mapboxgl.GeoJSONSource }> = new Map();
 	private color: string;
 
 	// Get centroid location average of all included units
@@ -36,27 +34,12 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		return [x, y];
 	}
 
-	constructor(id: string, team: Team, units: T[], waypoints?: Waypoint[]) {
+	constructor(id: string, team: Team, units: T[], waypoints: Waypoint[]) {
 		this.id = id.replace(/ /g, "_");
 		this._team = team;
 		this.units = units;
-
-		this.locationSourceID = `${this.id}_location`;
-		this.pathSourceID = `${this.id}_path`;
-		this.waypoints = waypoints || [];
+		this.waypoints = waypoints;
 		this.intermediatePoints = [this.location, this.location];
-
-		console.log(this.locationSourceID, this.pathSourceID);
-		map.addSource(this.locationSourceID, {
-			type: "geojson",
-			data: turf.point(this.location)
-		});
-		this.locationSource = map.getSource(this.locationSourceID) as mapboxgl.GeoJSONSource;
-		map.addSource(this.pathSourceID, {
-			type: "geojson",
-			data: turf.lineString(this.intermediatePoints)
-		});
-		this.pathSource = map.getSource(this.pathSourceID) as mapboxgl.GeoJSONSource;
 
 		switch (team) {
 			case Team.Russia:
@@ -82,8 +65,8 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		if (!next) {
 			return;
 		}
-		this.intermediatePoints = await getDirections(this.location, next.location);
-		this.pathSource.setData(turf.lineString(this.intermediatePoints));
+		this.intermediatePoints = await getDirections(this.location, next.location, UnitType.HeavyArmor);
+		this.sources.get("path")!.source.setData(turf.lineString(this.intermediatePoints));
 	}
 
 	public tick(time: Date, secondsElapsed: number): void {
@@ -94,9 +77,39 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	private drawInit(): void {
+		// Add sources
+		type SourceGeoJSON = _turf.helpers.Feature<_turf.helpers.Point, _turf.helpers.Properties> | _turf.helpers.Feature<_turf.helpers.LineString, _turf.helpers.Properties>;
+		let data: [string, SourceGeoJSON][] = [
+			["location", turf.point(this.location)],
+			["path", turf.lineString(this.intermediatePoints)],
+			["waypoints", turf.lineString([this.location, ...this.waypoints.map(waypoint => waypoint.location)])]
+		];
+		for (let [id, geojson] of data) {
+			let sourceID = `${this.id}_${id}`;
+			map.addSource(sourceID, {
+				type: "geojson",
+				data: geojson
+			});
+			this.sources.set(id, {
+				id: sourceID,
+				source: map.getSource(sourceID) as mapboxgl.GeoJSONSource
+			});
+		}
+
+		// HTML controls for data visualization
+		const showWaypoints = document.getElementById("show-waypoints") as HTMLInputElement;
+		showWaypoints.addEventListener("change", () => {
+			if (showWaypoints.checked) {
+				map.setLayoutProperty(this.sources.get("waypoints")!.id, "visibility", "visible");
+			}
+			else {
+				map.setLayoutProperty(this.sources.get("waypoints")!.id, "visibility", "none");
+			}
+		});
+		
 		map.addLayer({
-			"id": this.locationSourceID,
-			"source": this.locationSourceID,
+			"id": this.sources.get("location")!.id,
+			"source": this.sources.get("location")!.id,
 			"type": "circle",
 			"paint": {
 				"circle-radius": 10,
@@ -104,17 +117,32 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 			}
 		});
 		map.addLayer({
-			"id": this.pathSourceID,
-			"source": this.pathSourceID,
+			"id": this.sources.get("path")!.id,
+			"source": this.sources.get("path")!.id,
+			"type": "line",
+			"layout": {
+				"line-join": "round",
+				"line-cap": "round",
+			},
+			// "minzoom": 11,
+			"paint": {
+				"line-color": this.color,
+				"line-width": 8,
+				"line-opacity": 0.9
+			}
+		});
+		map.addLayer({
+			"id": this.sources.get("waypoints")!.id,
+			"source": this.sources.get("waypoints")!.id,
 			"type": "line",
 			"layout": {
 				"line-join": "round",
 				"line-cap": "round"
 			},
-			//"maxzoom": 15,
 			"paint": {
 				"line-color": this.color,
-				"line-width": 8
+				"line-width": 2,
+				"line-opacity": 0.9
 			}
 		});
 	}
