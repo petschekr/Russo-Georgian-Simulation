@@ -25,3 +25,7 @@ html, body {
 #map {
     width: 100%;
 }
+
+#tick-delay {
+    width: 45px;
+}

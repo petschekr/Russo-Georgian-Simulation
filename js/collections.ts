@@ -1,7 +1,7 @@
 import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD } from "./common";
 import { Unit, TankT55, InfantrySquad } from "./units";
 import { UnitType } from "./weapons";
-import { getDirections, terrainFeatures } from "./mapdata";
+import { getDirections, terrainFeatures, TerrainReturn } from "./mapdata";
 import { map } from "./main";
 
 import * as _turf from "@turf/turf";
@@ -72,7 +72,27 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		
 		let next = this.waypoints[0];
 		this.intermediatePoints = await getDirections(this.location, next.location, this.type);
-		this.sources.get("path")!.source.setData(turf.lineString(this.intermediatePoints));
+		let intermediatePath = turf.lineString(this.intermediatePoints);
+		this.sources.get("path")!.source.setData(intermediatePath);
+
+		// let chunks = turf.lineChunk(intermediatePath, 1, { units: "kilometers" });
+		// let chunks2 = chunks.features[0];
+		let allCoords = turf.coordAll(intermediatePath);
+		let start = allCoords[0] as Vector2;
+		let end = allCoords[allCoords.length - 1] as Vector2;
+		let distance = turf.distance(start, end, { units: "meters" });
+
+		let terrainDetails = await Promise.all([
+			terrainFeatures(start),
+			terrainFeatures(end)
+		]);
+		
+		// Rise / run
+		let grade = Math.abs(terrainDetails[0].elevation - terrainDetails[1].elevation) / distance;
+		console.log(`Calculated grade for computed route (${terrainDetails[0].elevation - terrainDetails[1].elevation} / ${distance}):`, grade);
+		for (let unit of this.units) {
+			unit.setSpeedForGrade(grade);
+		}
 
 		this.navigationCalculated = true;
 	}
@@ -80,7 +100,8 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 	public tick(time: number, secondsElapsed: number): void {
 		if (this.waypoints[0] && turf.distance(this.waypoints[0].location, this.location) < NAVIGATION_THRESHOLD) {
 			// Destination reached
-			if (time >= this.waypoints[0].time.valueOf() / 1000) {
+			const DEBUGGING = true;
+			if (time >= this.waypoints[0].time.valueOf() / 1000 || DEBUGGING) {
 				// Only advance to next waypoint when time matches up
 				this.waypoints.shift();
 				this.navigationCalculated = false;

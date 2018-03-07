@@ -74,6 +74,8 @@ export abstract class Unit {
 		secondsElapsed;
 		// Engage enemy units
 	}
+
+	public abstract setSpeedForGrade(grade: number): void;
 }
 
 export class TankT55 extends Unit {
@@ -89,7 +91,10 @@ export class TankT55 extends Unit {
 	public outOfActionDecay = 60 * 15;
 	public blocksOthers = true;
 
-	public speed = 13;
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 4.47;
+	public speed = this.maxSpeed;
+
 	public rotationSpeed = Infinity;
 	public maxClimbAbility = 0.6;
 	public movement = {
@@ -122,6 +127,13 @@ export class TankT55 extends Unit {
 		this.id = `T-55_${TankT55.creationCount++}`;
 		this.location = location;
 	}
+
+	public setSpeedForGrade(grade: number): void {
+		this.speed = this.maxSpeed * Math.exp(-4 * grade);
+		if (grade > this.maxClimbAbility) {
+			this.speed = 0;
+		}
+	}
 }
 
 export class InfantrySquad extends Unit {
@@ -137,7 +149,8 @@ export class InfantrySquad extends Unit {
 	public outOfActionDecay = 60 * 5;
 	public blocksOthers = false;
 
-	public speed = 2;
+	public readonly maxSpeed = 1.34; // 3 miles per hour
+	public speed = this.maxSpeed;
 	public rotationSpeed = Infinity;
 	public maxClimbAbility = 1;
 	public movement = {
@@ -164,5 +177,13 @@ export class InfantrySquad extends Unit {
 		super();
 		this.id = `InfantrySquad(${this.memberCount})_${InfantrySquad.creationCount++}`;
 		this.location = location;
+	}
+
+	// Source for humans: http://mtntactical.com/research/walking-uphill-10-grade-cuts-speed-13not-12/
+	public setSpeedForGrade(grade: number): void {
+		this.speed = this.maxSpeed * Math.exp(-1.5 * grade);
+		if (grade > this.maxClimbAbility) {
+			this.speed = 0;
+		}
 	}
 }

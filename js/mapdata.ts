@@ -9,7 +9,7 @@ export enum Mode {
 	Walking
 }
 
-function directionsUrlFormatter(start: Vector2, end: Vector2, type: Mode = Mode.Driving, full: boolean = true): string {
+function directionsUrlFormatter(start: Vector2, end: Vector2, type: Mode = Mode.Driving, full: boolean = false): string {
 	let coordinates = `${start[0]},${start[1]};${end[0]},${end[1]}`;
 	let mode = type === Mode.Walking ? "walking" : "driving";
 	let overview = full ? "full" : "simplified";
@@ -88,7 +88,7 @@ class TerrainType {
 		this.state.snow = true;
 	}
 }
-type TerrainReturn = { terrain: TerrainType; elevation: number };
+export type TerrainReturn = { terrain: TerrainType; elevation: number };
 export async function terrainFeatures(location: Vector2): Promise<TerrainReturn> {
 	return new Promise<TerrainReturn>((resolve, reject) => {
 		let url = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/${location[0]},${location[1]}.json?radius=0&access_token=${mapboxgl.accessToken}`;
