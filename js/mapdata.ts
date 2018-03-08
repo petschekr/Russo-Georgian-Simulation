@@ -30,7 +30,23 @@ export async function getDirections(start: Vector2, end: Vector2, unitType: Unit
 		xhr.open("GET", directionsUrlFormatter(start, end, movementMode), true);
 		xhr.responseType = "json";
 		xhr.onload = () => {
-			resolve(xhr.response.routes[0].geometry.coordinates);
+			if (xhr.status === 429) {
+				// Too many request -- wait a bit
+				console.warn("Too many requests made to Mapbox! Waiting before retrying");
+				window.setTimeout(async () => {
+					try {
+						resolve(await getDirections(start, end, unitType));
+					}
+					catch (err) {
+						reject(err);
+					}
+				}, 2000);
+				return;
+			}
+			resolve([
+				...xhr.response.routes[0].geometry.coordinates,
+				end // Mapbox sometimes simplifies directions and leaves out actual desired destination
+			]);
 		};
 		xhr.onerror = err => {
 			reject(err);

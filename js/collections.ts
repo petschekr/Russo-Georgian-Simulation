@@ -65,10 +65,15 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 
 	// Navigation occurs on the unit collection level and instructions get
 	// propogated downwards to the individual units
+	private navigationCalculating: boolean = false;
 	private async calculateNavigation(): Promise<void> {
 		if (this.waypoints.length <= 0) {
 			return;
 		}
+		if (this.navigationCalculating) {
+			return;
+		}
+		this.navigationCalculating = true;
 		
 		let next = this.waypoints[0];
 		this.intermediatePoints = await getDirections(this.location, next.location, this.type);
@@ -94,6 +99,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 			unit.setSpeedForGrade(grade);
 		}
 
+		this.navigationCalculating = false;
 		this.navigationCalculated = true;
 	}
 
