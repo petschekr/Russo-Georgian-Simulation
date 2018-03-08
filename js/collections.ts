@@ -93,8 +93,8 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		]);
 		
 		// Rise / run
-		let grade = Math.abs(terrainDetails[0].elevation - terrainDetails[1].elevation) / distance;
-		console.log(`Calculated grade for computed route (${terrainDetails[0].elevation - terrainDetails[1].elevation} / ${distance}):`, grade);
+		let grade = Math.abs(terrainDetails[1].elevation - terrainDetails[0].elevation) / distance;
+		console.log(`Calculated grade for computed route (${terrainDetails[1].elevation - terrainDetails[0].elevation} / ${distance}):`, grade);
 		for (let unit of this.units) {
 			unit.setSpeedForGrade(grade);
 		}
@@ -104,7 +104,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	public tick(time: number, secondsElapsed: number): void {
-		if (this.waypoints[0] && turf.distance(this.waypoints[0].location, this.location) < NAVIGATION_THRESHOLD) {
+		if (this.waypoints[0] && turf.distance(this.waypoints[0].location, this.location, { units: "meters" }) < NAVIGATION_THRESHOLD) {
 			// Destination reached
 			const DEBUGGING = true;
 			if (time >= this.waypoints[0].time.valueOf() / 1000 || DEBUGGING) {
@@ -138,17 +138,21 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 			}
 			unit.tick(secondsElapsed);
 		}
-		// Update location on map
+		// Update visualizations on map
 		this.sources.get("location")!.source.setData(turf.point(this.location));
+		this.sources.get("units")!.source.setData(turf.multiPoint(this.units.map(unit => unit.location)));
 	}
 
 	private drawInit(): void {
 		// Add sources
-		type SourceGeoJSON = _turf.helpers.Feature<_turf.helpers.Point, _turf.helpers.Properties> | _turf.helpers.Feature<_turf.helpers.LineString, _turf.helpers.Properties>;
+		type GeoFeature<T> = _turf.helpers.Feature<T, _turf.helpers.Properties>;
+		type SourceGeoJSON = GeoFeature<_turf.helpers.Point> | GeoFeature<_turf.helpers.MultiPoint> | GeoFeature<_turf.helpers.LineString>;
+		
 		let data: [string, SourceGeoJSON][] = [
 			["location", turf.point(this.location)],
 			["path", turf.lineString(this.intermediatePoints)],
-			["waypoints", turf.lineString([this.location, ...this.waypoints.map(waypoint => waypoint.location)])]
+			["waypoints", turf.lineString([this.location, ...this.waypoints.map(waypoint => waypoint.location)])],
+			["units", turf.multiPoint(this.units.map(unit => unit.location))]
 		];
 		for (let [id, geojson] of data) {
 			let sourceID = `${this.id}_${id}`;
@@ -179,6 +183,15 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 			"type": "circle",
 			"paint": {
 				"circle-radius": 10,
+				"circle-color": this.color
+			}
+		});
+		map.addLayer({
+			"id": this.sources.get("units")!.id,
+			"source": this.sources.get("units")!.id,
+			"type": "circle",
+			"paint": {
+				"circle-radius": 4,
 				"circle-color": this.color
 			}
 		});
@@ -266,7 +279,7 @@ export class TankBattalion extends AgentCollection<TankT55> {
 			units.push(new TankT55(location));
 		}
 
-		let id = `InfantryBattalion_${Team[team]}_${name}`;
+		let id = `TankBattalion_${Team[team]}_${name}`;
 		super(id, team, units, waypoints);
 
 		this.type = UnitType.HeavyArmor;

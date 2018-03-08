@@ -13,14 +13,14 @@ export interface Entity {
 	tick(time: number, secondsElapsed: number): void; // Do something every time iteration
 }
 
-export const NAVIGATION_THRESHOLD = 1 / 10; // 1 / 10 of a kilometer
+export const NAVIGATION_THRESHOLD = 10; // 10 meters
 
 export class Utilities {
 	static randomFloat(max: number = 1): number {
 		return Math.random() * max;
 	}
-	static randomInt(max: number = 1): number {
-		return Math.floor(this.randomFloat(max));
+	static randomInt(min: number, max: number): number {
+		return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 	static degreesToRadians(degrees: number): number {
 		return degrees * (Math.PI / 180);

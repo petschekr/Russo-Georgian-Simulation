@@ -15,7 +15,6 @@ export abstract class Unit {
 	public abstract readonly type: UnitType;
 
 	public abstract location: Vector2;
-	public abstract rotation: number; // In radians
 
 	public abstract outOfAction: boolean;
 	public abstract outOfActionDecay: number // In seconds
@@ -47,7 +46,7 @@ export abstract class Unit {
 	}
 
 	public debugString(): string {
-		return `lat: ${this.location[1]}, long: ${this.location[0]}, rotation: ${Utilities.radiansToDegrees(this.rotation)}`
+		return `lat: ${this.location[1]}, long: ${this.location[0]}`
 	}
 
 	public updatePath(time: number, navPoints: Vector2[], destination: Waypoint): void {
@@ -63,7 +62,7 @@ export abstract class Unit {
 			let newLocation = turf.along(this.path, this.speed * secondsNavigating, { units: "meters" });
 			this.location = newLocation.geometry!.coordinates as [number, number];
 		}
-		if (turf.distance(this.location, this.destination.location, { units: "kilometers" }) < NAVIGATION_THRESHOLD) {
+		if (turf.distance(this.location, this.destination.location, { units: "meters" }) < NAVIGATION_THRESHOLD) {
 			// Destination arrived (within 100 meters)
 			this.destinationArrived = true;
 			return true;
@@ -76,16 +75,23 @@ export abstract class Unit {
 	}
 
 	public abstract setSpeedForGrade(grade: number): void;
+
+	public static fuzzLocation(location: Vector2, MAX_DISTANCE: number = 50): Vector2 {
+		let point = turf.point(location);
+		let distance = Utilities.randomInt(0, MAX_DISTANCE);
+		let bearing = Utilities.randomInt(-180, 180);
+
+		let fuzzedLocation = turf.destination(point, distance, bearing, { units: "meters" });
+		return turf.coordAll(fuzzedLocation)[0] as Vector2;
+	}
 }
 
 export class TankT55 extends Unit {
 	public readonly id: string;
 	public readonly type = UnitType.HeavyArmor;
 	public location: Vector2;
-	public rotation = 0;
 
 	private static creationCount = 0;
-
 
 	public outOfAction = false;
 	public outOfActionDecay = 60 * 15;
@@ -125,7 +131,7 @@ export class TankT55 extends Unit {
 	constructor(location: Vector2) {
 		super();
 		this.id = `T-55_${TankT55.creationCount++}`;
-		this.location = location;
+		this.location = Unit.fuzzLocation(location);
 	}
 
 	public setSpeedForGrade(grade: number): void {
@@ -140,7 +146,6 @@ export class InfantrySquad extends Unit {
 	public readonly id: string;
 	public readonly type = UnitType.Infantry;
 	public location: Vector2;
-	public rotation = 0;
 	
 	private static creationCount = 0;
 	protected memberCount: number = 4; // Soldiers in squad, multiply ammo by this
@@ -176,7 +181,7 @@ export class InfantrySquad extends Unit {
 	constructor(location: Vector2) {
 		super();
 		this.id = `InfantrySquad(${this.memberCount})_${InfantrySquad.creationCount++}`;
-		this.location = location;
+		this.location = Unit.fuzzLocation(location);
 	}
 
 	// Source for humans: http://mtntactical.com/research/walking-uphill-10-grade-cuts-speed-13not-12/
