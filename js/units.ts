@@ -38,8 +38,9 @@ export abstract class Unit {
 
 	private path: _turf.helpers.Feature<_turf.helpers.LineString, _turf.helpers.Properties> = turf.lineString([[0, 0], [0, 0]]);
 	private navigationBegin: number = 0;
-	private destination: Waypoint = { location: [0, 0], time: new Date() };
-	private destinationArrived = false;
+	private destination: Waypoint = { location: [0, 0] };
+	private destinationArrived = true;
+	public get traveling() { return !this.destinationArrived }
 
 	constructor() {
 		
@@ -56,15 +57,19 @@ export abstract class Unit {
 		this.path = turf.lineString([this.location, ...navPoints]);
 	}
 	public navigate(time: number): boolean {
-		// Move to next navpoint (intermedite routed points to next waypoint contained in collection)
-		if (!this.destinationArrived) {
-			let secondsNavigating = time - this.navigationBegin;
-			let newLocation = turf.along(this.path, this.speed * secondsNavigating, { units: "meters" });
-			this.location = newLocation.geometry!.coordinates as [number, number];
+		if (this.destinationArrived) {
+			return true;
 		}
+		// Move to next navpoint (intermedite routed points to next waypoint contained in collection)
+		let secondsNavigating = time - this.navigationBegin;
+		let newLocation = turf.along(this.path, this.speed * secondsNavigating, { units: "meters" });
+		this.location = turf.coordAll(newLocation)[0] as Vector2;
+
 		if (turf.distance(this.location, this.destination.location, { units: "meters" }) < NAVIGATION_THRESHOLD) {
-			// Destination arrived (within 100 meters)
+			// Destination arrived
 			this.destinationArrived = true;
+			// Spread out by fuzzing location
+			this.fuzzLocation();
 			return true;
 		}
 		return false;
@@ -76,13 +81,13 @@ export abstract class Unit {
 
 	public abstract setSpeedForGrade(grade: number): void;
 
-	public static fuzzLocation(location: Vector2, MAX_DISTANCE: number = 50): Vector2 {
-		let point = turf.point(location);
+	public fuzzLocation(MAX_DISTANCE: number = 50): void {
+		let point = turf.point(this.location);
 		let distance = Utilities.randomInt(0, MAX_DISTANCE);
 		let bearing = Utilities.randomInt(-180, 180);
 
 		let fuzzedLocation = turf.destination(point, distance, bearing, { units: "meters" });
-		return turf.coordAll(fuzzedLocation)[0] as Vector2;
+		this.location = turf.coordAll(fuzzedLocation)[0] as Vector2;
 	}
 }
 
@@ -131,7 +136,8 @@ export class TankT55 extends Unit {
 	constructor(location: Vector2) {
 		super();
 		this.id = `T-55_${TankT55.creationCount++}`;
-		this.location = Unit.fuzzLocation(location);
+		this.location = location;
+		this.fuzzLocation();
 	}
 
 	public setSpeedForGrade(grade: number): void {
@@ -181,7 +187,8 @@ export class InfantrySquad extends Unit {
 	constructor(location: Vector2) {
 		super();
 		this.id = `InfantrySquad(${this.memberCount})_${InfantrySquad.creationCount++}`;
-		this.location = Unit.fuzzLocation(location);
+		this.location = location;
+		this.fuzzLocation();
 	}
 
 	// Source for humans: http://mtntactical.com/research/walking-uphill-10-grade-cuts-speed-13not-12/

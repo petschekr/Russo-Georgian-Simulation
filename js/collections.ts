@@ -7,6 +7,8 @@ import { map } from "./main";
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
 
+type GeoFeature<T> = _turf.helpers.Feature<T, _turf.helpers.Properties>;
+
 // Groups of infantry, tanks, etc.
 abstract class AgentCollection<T extends Unit> implements Entity {
 	public readonly id: string;
@@ -23,6 +25,8 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 
 	private sources: Map<string, { id: string, source: mapboxgl.GeoJSONSource }> = new Map();
 	private color: string;
+
+	private visibilityArea: GeoFeature<_turf.helpers.Polygon | _turf.helpers.MultiPolygon> = turf.polygon([[[0, 0], [0, 0], [0, 0], [0, 0]]]);
 
 	// Get centroid location average of all included units
 	get location(): Vector2 {
@@ -103,23 +107,21 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		this.navigationCalculated = true;
 	}
 
+	private unitsFinishedNavigating: boolean = false;
 	public tick(time: number, secondsElapsed: number): void {
-		if (this.waypoints[0] && turf.distance(this.waypoints[0].location, this.location, { units: "meters" }) < NAVIGATION_THRESHOLD) {
-			// Destination reached
-			const DEBUGGING = true;
-			if (time >= this.waypoints[0].time.valueOf() / 1000 || DEBUGGING) {
-				// Only advance to next waypoint when time matches up
-				this.waypoints.shift();
-				this.navigationCalculated = false;
-				this.navigating = false;
-				if (this.waypoints.length === 0) {
-					console.log(`${this.id} is done with navigation!`);
-					// Hide intermediate points path
-					map.setLayoutProperty(this.sources.get("path")!.id, "visibility", "none");
-				}
-				else {
-					console.log(`${this.id} moving to next objective. ${this.waypoints.length - 1} remaining.`);
-				}
+		if (this.waypoints[0] && this.unitsFinishedNavigating) {
+			// Destination reached (all units no longer traveling)
+			this.waypoints.shift();
+			this.unitsFinishedNavigating = false;
+			this.navigationCalculated = false;
+			this.navigating = false;
+			if (this.waypoints.length === 0) {
+				console.log(`${this.id} is done with navigation!`);
+				// Hide intermediate points path
+				map.setLayoutProperty(this.sources.get("path")!.id, "visibility", "none");
+			}
+			else {
+				console.log(`${this.id} moving to next objective. ${this.waypoints.length - 1} remaining.`);
 			}
 		}
 		if (!this.navigating && !this.navigationCalculated) {
@@ -131,28 +133,41 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 			}
 			this.navigating = true;
 		}
+
 		// Tick through subunits
+		let finishedNavigation = 0;
+		let unitVisibilties: GeoFeature<_turf.helpers.Polygon>[] = [];
 		for (let unit of this.units) {
-			if (this.navigating) {
-				unit.navigate(time);
+			if (this.navigating && unit.navigate(time)) {
+				finishedNavigation++;
 			}
+			//unitVisibilties.push(turf.circle(unit.location, unit.visibility.range, { units: "meters" }));
 			unit.tick(secondsElapsed);
 		}
+		this.unitsFinishedNavigating = this.units.length === finishedNavigation;
+
 		// Update visualizations on map
 		this.sources.get("location")!.source.setData(turf.point(this.location));
 		this.sources.get("units")!.source.setData(turf.multiPoint(this.units.map(unit => unit.location)));
+		// Disabled for performance concerns
+		//this.visibilityArea = turf.union(...unitVisibilties);
+		this.visibilityArea = turf.circle(this.location, this.units[0].visibility.range, { units: "meters" });
+		this.sources.get("visibility")!.source.setData(this.visibilityArea);
 	}
 
 	private drawInit(): void {
 		// Add sources
-		type GeoFeature<T> = _turf.helpers.Feature<T, _turf.helpers.Properties>;
-		type SourceGeoJSON = GeoFeature<_turf.helpers.Point> | GeoFeature<_turf.helpers.MultiPoint> | GeoFeature<_turf.helpers.LineString>;
-		
+		type SourceGeoJSON = GeoFeature<_turf.helpers.Point>
+			| GeoFeature<_turf.helpers.MultiPoint>
+			| GeoFeature<_turf.helpers.LineString>
+			| GeoFeature<_turf.helpers.Polygon | _turf.helpers.MultiPolygon>;
+
 		let data: [string, SourceGeoJSON][] = [
 			["location", turf.point(this.location)],
 			["path", turf.lineString(this.intermediatePoints)],
 			["waypoints", turf.lineString([this.location, ...this.waypoints.map(waypoint => waypoint.location)])],
-			["units", turf.multiPoint(this.units.map(unit => unit.location))]
+			["units", turf.multiPoint(this.units.map(unit => unit.location))],
+			["visibility", this.visibilityArea]
 		];
 		for (let [id, geojson] of data) {
 			let sourceID = `${this.id}_${id}`;
@@ -167,31 +182,54 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		}
 
 		// HTML controls for data visualization
-		const showWaypoints = document.getElementById("show-waypoints") as HTMLInputElement;
-		showWaypoints.addEventListener("change", () => {
-			if (showWaypoints.checked) {
-				map.setLayoutProperty(this.sources.get("waypoints")!.id, "visibility", "visible");
-			}
-			else {
-				map.setLayoutProperty(this.sources.get("waypoints")!.id, "visibility", "none");
+		let controlAndLayerIDs = new Map([
+			["show-waypoints", "waypoints"],
+			["show-collections", "location"],
+			["show-units", "units"],
+			["show-path", "path"],
+			["show-visibility", "visibility"],
+		]);
+		for (let [controlID, layerID] of controlAndLayerIDs.entries()) {
+			const control = document.getElementById(controlID) as HTMLInputElement;
+			control.addEventListener("change", () => {
+				if (control.checked) {
+					map.setLayoutProperty(this.sources.get(layerID)!.id, "visibility", "visible");
+				}
+				else {
+					map.setLayoutProperty(this.sources.get(layerID)!.id, "visibility", "none");
+				}
+			})
+		}
+		
+		map.addLayer({
+			"id": this.sources.get("waypoints")!.id,
+			"source": this.sources.get("waypoints")!.id,
+			"type": "line",
+			"layout": {
+				"line-join": "round",
+				"line-cap": "round"
+			},
+			"paint": {
+				"line-color": this.color,
+				"line-width": 2,
+				"line-opacity": 0.9
 			}
 		});
-		
+		map.addLayer({
+			"id": this.sources.get("visibility")!.id,
+			"source": this.sources.get("visibility")!.id,
+			"type": "fill",
+			"paint": {
+				"fill-color": this.color,
+				"fill-opacity": 0.5
+			}
+		});
 		map.addLayer({
 			"id": this.sources.get("location")!.id,
 			"source": this.sources.get("location")!.id,
 			"type": "circle",
 			"paint": {
 				"circle-radius": 10,
-				"circle-color": this.color
-			}
-		});
-		map.addLayer({
-			"id": this.sources.get("units")!.id,
-			"source": this.sources.get("units")!.id,
-			"type": "circle",
-			"paint": {
-				"circle-radius": 4,
 				"circle-color": this.color
 			}
 		});
@@ -211,17 +249,14 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 			}
 		});
 		map.addLayer({
-			"id": this.sources.get("waypoints")!.id,
-			"source": this.sources.get("waypoints")!.id,
-			"type": "line",
-			"layout": {
-				"line-join": "round",
-				"line-cap": "round"
-			},
+			"id": this.sources.get("units")!.id,
+			"source": this.sources.get("units")!.id,
+			"type": "circle",
 			"paint": {
-				"line-color": this.color,
-				"line-width": 2,
-				"line-opacity": 0.9
+				"circle-radius": 4,
+				"circle-color": this.color,
+				"circle-stroke-width": 2,
+				"circle-stroke-color": "#FFFFFF"
 			}
 		});
 	}

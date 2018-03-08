@@ -2,8 +2,7 @@ declare const moment: any;
 
 export type Vector2 = [number, number]; // Note! Longitude, Latitude (x, y)
 export interface Waypoint {
-	location: Vector2,
-	time: Date
+	location: Vector2
 }
 
 export interface Entity {
