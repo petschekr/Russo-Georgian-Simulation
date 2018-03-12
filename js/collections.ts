@@ -1,4 +1,4 @@
-import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD } from "./common";
+import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD, Utilities } from "./common";
 import { Unit, TankT55, InfantrySquad } from "./units";
 import { UnitType } from "./weapons";
 import { getDirections, terrainFeatures, TerrainReturn } from "./mapdata";
@@ -11,6 +11,8 @@ type GeoFeature<T> = _turf.helpers.Feature<T, _turf.helpers.Properties>;
 
 // Groups of infantry, tanks, etc.
 abstract class AgentCollection<T extends Unit> implements Entity {
+	private static instances: AgentCollection<Unit>[] = [];
+
 	public readonly id: string;
 	public abstract readonly type: UnitType;
 	protected _team: Team = Team.None;
@@ -43,6 +45,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	constructor(id: string, team: Team, units: T[], waypoints: Waypoint[]) {
+		AgentCollection.instances.push(this);
 		this.id = id.replace(/ /g, "_");
 		this._team = team;
 		this.units = units;
@@ -61,10 +64,6 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		}
 
 		this.drawInit();
-		
-		// terrainFeatures(this.location).then(terrain => {
-		// 	console.log(terrain.terrain, terrain.elevation);
-		// });
 	}
 
 	// Navigation occurs on the unit collection level and instructions get
@@ -82,6 +81,13 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		let next = this.waypoints[0];
 		this.intermediatePoints = await getDirections(this.location, next.location, this.type);
 		let intermediatePath = turf.lineString(this.intermediatePoints);
+		// Don't take really inefficient paths
+		const inefficientPathFactor = 2.5;
+		if (turf.length(intermediatePath) > turf.distance(this.location, next.location) * inefficientPathFactor) {
+			this.intermediatePoints = [this.location, next.location];
+			intermediatePath = turf.lineString(this.intermediatePoints);
+		}
+
 		this.sources.get("path")!.source.setData(intermediatePath);
 
 		// let chunks = turf.lineChunk(intermediatePath, 1, { units: "kilometers" });
@@ -108,6 +114,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	private unitsFinishedNavigating: boolean = false;
+	private combatCalculationFinished: boolean = true;
 	public tick(time: number, secondsElapsed: number): void {
 		if (this.waypoints[0] && this.unitsFinishedNavigating) {
 			// Destination reached (all units no longer traveling)
@@ -145,14 +152,72 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 			unit.tick(secondsElapsed);
 		}
 		this.unitsFinishedNavigating = this.units.length === finishedNavigation;
+		// Disabled for performance concerns
+		//this.visibilityArea = turf.union(...unitVisibilties);
+		this.visibilityArea = turf.circle(this.location, this.units[0].visibility.range, { units: "meters" });
+
+		if (this.combatCalculationFinished) {
+			this.combatCalculationFinished = false;
+			this.combat().then(() => this.combatCalculationFinished = true);
+		}
 
 		// Update visualizations on map
 		this.sources.get("location")!.source.setData(turf.point(this.location));
 		this.sources.get("units")!.source.setData(turf.multiPoint(this.units.map(unit => unit.location)));
-		// Disabled for performance concerns
-		//this.visibilityArea = turf.union(...unitVisibilties);
-		this.visibilityArea = turf.circle(this.location, this.units[0].visibility.range, { units: "meters" });
 		this.sources.get("visibility")!.source.setData(this.visibilityArea);
+	}
+
+	private detectedCollections = new Set<AgentCollection<Unit>>();
+	private async combat(): Promise<void> {
+		const visibilityRange = this.units[0].visibility.range;
+		const detectionMultiplier = 1;
+
+		let otherCollections = AgentCollection.instances.filter(instance => instance.id !== this.id);
+		for (let collection of otherCollections) {
+			if (
+				turf.booleanPointInPolygon(collection.location, this.visibilityArea)
+				&& Math.random() * (visibilityRange / turf.distance(this.location, collection.location, { units: "meters" })) * detectionMultiplier
+			) {
+				if (this.detectedCollections.has(collection)) {
+					continue;
+				}
+				// Detected another unit
+				if (this.type === UnitType.Infantry && collection.type === UnitType.HeavyArmor && this.units.length < collection.units.length * 3) {
+					continue;
+				}
+				if (this.type === UnitType.HeavyArmor && collection.type === UnitType.Infantry && this.units.length < collection.units.length * 0.5) {
+					continue;
+				}
+				this.detectedCollections.add(collection);
+				console.log("Detected collection:", collection.id);
+				// Move to most advantageous postion (highest ground)
+				let bearing = Utilities.randomInt(0, 360);
+				let bearings = [bearing, (bearing + 90) % 360, (bearing + 180) % 360, (bearing + 270) % 360];
+				let elevations = await Promise.all(bearings.map(async bearing => {
+					let location = turf.destination(collection.location, 200, bearing, { units: "meters" });
+					let terrain = await terrainFeatures(turf.coordAll(location)[0] as Vector2);
+					return {
+						location,
+						elevation: terrain.elevation
+					};
+				}));
+				let maxElevation = -Infinity;
+				let maxPoint = turf.point([0, 0]);
+				for (let elevation of elevations) {
+					if (elevation.elevation > maxElevation) {
+						maxElevation = elevation.elevation;
+						maxPoint = elevation.location;
+					}
+				}
+				this.waypoints.unshift({ location: Utilities.pointToVector(maxPoint) });
+				this.navigating = false;
+				this.calculateNavigation();
+			}
+			else if (this.detectedCollections.has(collection)) {
+				// Remove unseen unit
+				this.detectedCollections.delete(collection);
+			}
+		}
 	}
 
 	private drawInit(): void {

@@ -17,17 +17,6 @@ export const map = new mapboxgl.Map({
 	bearingSnap: 20
 });
 
-// Terrain types
-// TODO: Implement as GeoJSON polygon NOT as entity
-/*class GridTile implements Entity {
-	public readonly id: string;
-	public location: Vector2;
-
-	constructor(location: Vector2) {
-		this.location = location;
-	}
-}*/
-
 function initializeUnits(): Entity[] {
 	return [
 		new InfantryBattalion([43.952436447143555, 42.20022901694891], 5, [
@@ -36,7 +25,8 @@ function initializeUnits(): Entity[] {
 			{ location: [43.96831512451172, 42.2162023613838] },
             { location: [43.97471219301224, 42.23230274125556] },
             { location: [43.96300435066223, 42.22481516512234] },
-            { location: [43.969130516052246, 42.20904664356124] }
+			{ location: [43.969130516052246, 42.20904664356124] },
+			{ location: [43.97483825683594, 42.203654487208524] }
 		], "41st Battalion", Team.Georgia),
 		new TankBattalion([44.09646, 42.62257], 5, [
 			{ location: [44.117457, 42.563961] },

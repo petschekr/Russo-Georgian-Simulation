@@ -1,3 +1,5 @@
+import * as _turf from "@turf/turf";
+declare const turf: typeof _turf;
 declare const moment: any;
 
 export type Vector2 = [number, number]; // Note! Longitude, Latitude (x, y)
@@ -26,6 +28,9 @@ export class Utilities {
 	}
 	static radiansToDegrees(radians: number): number {
 		return radians * (180 / Math.PI);
+	}
+	static pointToVector(point: _turf.Feature<_turf.Point, _turf.Properties>): Vector2 {
+		return turf.coordAll(point)[0] as Vector2;
 	}
 }
 
