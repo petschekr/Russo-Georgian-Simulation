@@ -172,7 +172,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		const visibilityRange = this.units[0].visibility.range;
 		const detectionMultiplier = 1;
 
-		let otherCollections = AgentCollection.instances.filter(instance => instance.id !== this.id);
+		let otherCollections = AgentCollection.instances.filter(instance => instance.id !== this.id && Utilities.isEnemy(this.team, instance.team));
 		for (let collection of otherCollections) {
 			if (
 				turf.booleanPointInPolygon(collection.location, this.visibilityArea)
@@ -194,7 +194,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 				let bearing = Utilities.randomInt(0, 360);
 				let bearings = [bearing, (bearing + 90) % 360, (bearing + 180) % 360, (bearing + 270) % 360];
 				let elevations = await Promise.all(bearings.map(async bearing => {
-					let location = turf.destination(collection.location, 200, bearing, { units: "meters" });
+					let location = turf.destination(collection.location, 300, bearing, { units: "meters" });
 					let terrain = await terrainFeatures(turf.coordAll(location)[0] as Vector2);
 					return {
 						location,
@@ -210,8 +210,8 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 					}
 				}
 				this.waypoints.unshift({ location: Utilities.pointToVector(maxPoint) });
+				// Force navigation calculation on next tick
 				this.navigating = false;
-				this.calculateNavigation();
 			}
 			else if (this.detectedCollections.has(collection)) {
 				// Remove unseen unit

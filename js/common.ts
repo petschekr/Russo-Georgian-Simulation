@@ -1,4 +1,5 @@
 import * as _turf from "@turf/turf";
+import { UnitType } from "./weapons";
 declare const turf: typeof _turf;
 declare const moment: any;
 
@@ -31,6 +32,21 @@ export class Utilities {
 	}
 	static pointToVector(point: _turf.Feature<_turf.Point, _turf.Properties>): Vector2 {
 		return turf.coordAll(point)[0] as Vector2;
+	}
+	static isEnemy(me: Team, them: Team): boolean {
+		if (me === Team.Georgia && them === Team.Russia) {
+			return true;
+		}
+		if (me === Team.Russia && them === Team.Georgia) {
+			return true;
+		}
+		if (me === Team.Georgia && them === Team.SouthOssetia) {
+			return true;
+		}
+		if (me === Team.SouthOssetia && them === Team.Georgia) {
+			return true;
+		}
+		return false;
 	}
 }
 
