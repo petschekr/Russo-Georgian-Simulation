@@ -19,6 +19,7 @@ export const map = new mapboxgl.Map({
 
 function initializeUnits(): Entity[] {
 	return [
+		/**West**/
 		new InfantryBattalion([43.952436447143555, 42.20022901694891], 15, [
 			{ location: [43.89261245727539, 42.21211802] },
 			{ location: [43.95647048950195, 42.22178015985047] }
@@ -33,6 +34,7 @@ function initializeUnits(): Entity[] {
 		new TankBattalion([43.952436447143555, 42.20022901694891], 20, [
 		], "44th Armored Battalion", Team.Georgia),
 		
+		/**East**/
 		new InfantryBattalion([44.03217315673828, 42.21046513733562], 15, [
 			{ location: [44.03114318847656, 42.24090937727564] },
 			{ location: [44.06041145324707, 42.27502251971017] }
@@ -69,28 +71,31 @@ function initializeUnits(): Entity[] {
 		new InfantryBattalion([43.59769821166992, 42.36133451106724], 15, [
 		], "Mountain Rifle Battalion", Team.Georgia),
 		
-		new TankBattalion([44.09646, 42.62257], 10, [
+		/**Russian Tanks**/
+		new TankBattalion([44.095247, 42.619793], 26, [
+		], "429 Motorized Rifle Regiment", Team.Russia),
+		new TankBattalion([44.094480, 42.620106], 26, [
+			{ location: [43.928737, 42.225538] },
+			{ location: [43.956550, 42.221885] }
+		], "503 Motorized Rifle Regiment", Team.Russia),
+		new TankBattalion([44.095098, 42.619851], 26, [
 			{ location: [44.117457, 42.563961] },
-			{ location: [44.059123992919915, 42.452214646756104] },
-			{ location: [43.90325546264648, 42.349663931625585] },
-			{ location: [43.964388370513916, 42.246151422934474] },
-			{ location: [43.95110607147217, 42.237064933651965] },
-			{ location: [43.95110607147217, 42.237064933651965] },
-			{ location: [43.92630100250244, 42.23296605397935] },
-			{ location: [43.92630100250244, 42.23296605397935] },
-			{ location: [43.95838022232056, 42.22184372166598] }
-		], "135 Motorized Rifle Regiment", Team.Russia),
-		new TankBattalion([44.07852172851562, 42.6304856356306], 10, [
-			{ location: [44.117457, 42.563961] },
-			{ location: [44.059123992919915, 42.452214646756104] },
-			{ location: [43.90325546264648, 42.349663931625585] },
-			{ location: [43.964388370513916, 42.246151422934474] },
-			{ location: [43.95110607147217, 42.237064933651965] },
-			{ location: [43.95110607147217, 42.237064933651965] },
-			{ location: [43.92630100250244, 42.23296605397935] },
-			{ location: [43.92630100250244, 42.23296605397935] },
-			{ location: [43.95838022232056, 42.22184372166598] }
-		], "Test Tank Battalion", Team.Russia)
+			{ location: [43.949769, 42.290389] },
+			{ location: [43.961421, 42.257837] }
+		], "693 Motorized Rifle Regiment", Team.Russia),
+		new TankBattalion([44.095118, 42.619849], 26, [
+			{ location: [44.116193, 42.562299] },
+			{ location: [43.889027, 42.216375] },
+			{ location: [43.934431, 42.225161] },
+			{ location: [43.958110, 42.221842] },
+			{ location: [43.938932, 42.225042] }
+		], "141 Motorized Rifle Regiment", Team.Russia),
+		new TankBattalion([44.021421, 42.658106], 26, [
+			{ location: [43.931235, 42.320023] }
+		], "70 Motorized Rifle Regiment", Team.Russia),
+		new TankBattalion([44.020066, 42.653092], 26, [
+			{ location: [43.935778, 42.317001] }
+		], "71 Motorized Rifle Regiment", Team.Russia)
 	];
 }
 
