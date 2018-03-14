@@ -64,6 +64,9 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		this.id = id.replace(/ /g, "_");
 		this._team = team;
 		this.waypoints = waypoints;
+		if (this.waypoints.length === 0) {
+			this.waypoints = [{ location: this.location }];
+		}
 		this.intermediatePoints = [this.location, this.location];
 
 		switch (team) {
@@ -178,7 +181,9 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		// Update visualizations on map
 		this.sources.get("location")!.source.setData(turf.point(this.location));
 		this.sources.get("units")!.source.setData(turf.multiPoint(this.units.map(unit => unit.location)));
-		this.sources.get("waypoints")!.source.setData(turf.lineString([this.location, ...this.waypoints.map(waypoint => waypoint.location)]));
+		if (this.waypoints.length > 0) {
+			this.sources.get("waypoints")!.source.setData(turf.lineString([this.location, ...this.waypoints.map(waypoint => waypoint.location)]));
+		}
 		this.sources.get("visibility")!.source.setData(this.visibilityArea);
 		map.setPaintProperty(this.sources.get("units")!.id, "circle-opacity", this.health / 100);
 	}
