@@ -68,15 +68,10 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 
 	// Navigation occurs on the unit collection level and instructions get
 	// propogated downwards to the individual units
-	private navigationCalculating: boolean = false;
 	private async calculateNavigation(): Promise<void> {
 		if (this.waypoints.length <= 0) {
 			return;
 		}
-		if (this.navigationCalculating) {
-			return;
-		}
-		this.navigationCalculating = true;
 		
 		let next = this.waypoints[0];
 		this.intermediatePoints = await getDirections(this.location, next.location, this.type);
@@ -104,20 +99,16 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		
 		// Rise / run
 		let grade = Math.abs(terrainDetails[1].elevation - terrainDetails[0].elevation) / distance;
-		console.log(`Calculated grade for computed route (${terrainDetails[1].elevation - terrainDetails[0].elevation} / ${distance}):`, grade);
+		console.log(`Calculated grade for computed route (${terrainDetails[1].elevation - terrainDetails[0].elevation} / ${distance}):`, grade.toFixed(2));
 		for (let unit of this.units) {
 			unit.setSpeedForGrade(grade);
 		}
 
-		this.navigationCalculating = false;
 		this.navigationCalculated = true;
 	}
 
 	private unitsFinishedNavigating: boolean = false;
-	private combatCalculationFinished: boolean = true;
-	private mostRecentTime: number = 0;
-	public tick(time: number, secondsElapsed: number): void {
-		this.mostRecentTime = time;
+	public async tick(time: number, secondsElapsed: number): Promise<void> {
 		if (this.waypoints[0] && this.unitsFinishedNavigating) {
 			// Destination reached (all units no longer traveling)
 			this.waypoints.shift();
@@ -134,7 +125,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 			}
 		}
 		if (!this.navigating && !this.navigationCalculated) {
-			this.calculateNavigation();
+			await this.calculateNavigation();
 		}
 		else if (!this.navigating && this.navigationCalculated) {
 			for (let unit of this.units) {
@@ -158,10 +149,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 		//this.visibilityArea = turf.union(...unitVisibilties);
 		this.visibilityArea = turf.circle(this.location, this.units[0].visibility.range, { units: "meters" });
 
-		if (this.combatCalculationFinished) {
-			this.combatCalculationFinished = false;
-			this.combat().then(() => this.combatCalculationFinished = true);
-		}
+		await this.combat(time);
 
 		// Update visualizations on map
 		this.sources.get("location")!.source.setData(turf.point(this.location));
@@ -170,7 +158,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	private detectedCollections = new Set<AgentCollection<Unit>>();
-	private async combat(): Promise<void> {
+	private async combat(time: number): Promise<void> {
 		const visibilityRange = this.units[0].visibility.range;
 		const detectionThreshold = 0.7;
 
@@ -211,7 +199,7 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 				await this.calculateNavigation();
 				// Distribute new path to subunits and include their part of the arc
 				for (let [i, unit] of this.units.entries()) {
-					unit.updatePath(this.mostRecentTime, [
+					unit.updatePath(time, [
 						...this.intermediatePoints,
 						Utilities.pointToVector(turf.along(spreadLine, spreadLineLength / this.units.length * i, { units: "meters" }))
 					], this.waypoints[0]);

@@ -12,7 +12,7 @@ export interface Entity {
     readonly id: string;
 	location: Vector2;
 	
-	tick(time: number, secondsElapsed: number): void; // Do something every time iteration
+	tick(time: number, secondsElapsed: number): Promise<void>; // Do something every time iteration
 }
 
 export const NAVIGATION_THRESHOLD = 10; // 10 meters
@@ -82,11 +82,11 @@ export class Dispatcher {
 		return this.entities.splice(removeIndex, 1)[0];
 	}
 
-	public tick(): void {
+	public async tick(): Promise<void> {
 		this.time.setSeconds(this.time.getSeconds() + this.secondsPerTick);
 
 		for (let entity of this.entities) {
-			entity.tick(this.time.valueOf() / 1000, this.secondsPerTick);
+			await entity.tick(this.time.valueOf() / 1000, this.secondsPerTick);
 		}
 	}
 }

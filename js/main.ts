@@ -74,7 +74,7 @@ async function start() {
 	});
 
 	async function update() {
-		dispatcher.tick();
+		await dispatcher.tick();
 		timeElement.textContent = dispatcher.formattedTime;
 		// console.timeEnd("Dispatcher tick");
 
