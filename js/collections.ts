@@ -115,7 +115,9 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 
 	private unitsFinishedNavigating: boolean = false;
 	private combatCalculationFinished: boolean = true;
+	private mostRecentTime: number = 0;
 	public tick(time: number, secondsElapsed: number): void {
+		this.mostRecentTime = time;
 		if (this.waypoints[0] && this.unitsFinishedNavigating) {
 			// Destination reached (all units no longer traveling)
 			this.waypoints.shift();
@@ -170,13 +172,13 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 	private detectedCollections = new Set<AgentCollection<Unit>>();
 	private async combat(): Promise<void> {
 		const visibilityRange = this.units[0].visibility.range;
-		const detectionMultiplier = 1;
+		const detectionThreshold = 0.7;
 
 		let otherCollections = AgentCollection.instances.filter(instance => instance.id !== this.id && Utilities.isEnemy(this.team, instance.team));
 		for (let collection of otherCollections) {
 			if (
 				turf.booleanPointInPolygon(collection.location, this.visibilityArea)
-				&& Math.random() * (visibilityRange / turf.distance(this.location, collection.location, { units: "meters" })) * detectionMultiplier
+				&& Math.random() * (visibilityRange / turf.distance(this.location, collection.location, { units: "meters" })) > detectionThreshold
 			) {
 				if (this.detectedCollections.has(collection)) {
 					continue;
@@ -189,29 +191,32 @@ abstract class AgentCollection<T extends Unit> implements Entity {
 					continue;
 				}
 				this.detectedCollections.add(collection);
-				console.log("Detected collection:", collection.id);
-				// Move to most advantageous postion (highest ground)
-				let bearing = Utilities.randomInt(0, 360);
-				let bearings = [bearing, (bearing + 90) % 360, (bearing + 180) % 360, (bearing + 270) % 360];
-				let elevations = await Promise.all(bearings.map(async bearing => {
-					let location = turf.destination(collection.location, 300, bearing, { units: "meters" });
-					let terrain = await terrainFeatures(turf.coordAll(location)[0] as Vector2);
-					return {
-						location,
-						elevation: terrain.elevation
-					};
-				}));
-				let maxElevation = -Infinity;
-				let maxPoint = turf.point([0, 0]);
-				for (let elevation of elevations) {
-					if (elevation.elevation > maxElevation) {
-						maxElevation = elevation.elevation;
-						maxPoint = elevation.location;
-					}
-				}
-				this.waypoints.unshift({ location: Utilities.pointToVector(maxPoint) });
-				// Force navigation calculation on next tick
+				console.warn("Detected collection:", collection.id);
+				
+				let bearingTargetToMe = turf.bearing(collection.location, this.location);
+				const spread = 120; // degrees
+				let spreadLine = turf.lineArc(
+					turf.point(collection.location),
+					300 / 1000, // Input in kilometers because of https://github.com/Turfjs/turf/issues/1310
+					bearingTargetToMe - spread / 2,
+					bearingTargetToMe + spread / 2,
+					{ steps: 12 }
+				);
+				let spreadLineLength = turf.length(spreadLine, { units: "meters" });
+				let navigationLocation = turf.centroid(spreadLine);
+				
+				this.waypoints.unshift({ location: Utilities.pointToVector(navigationLocation) });
 				this.navigating = false;
+				this.navigationCalculated = false;
+				await this.calculateNavigation();
+				// Distribute new path to subunits and include their part of the arc
+				for (let [i, unit] of this.units.entries()) {
+					unit.updatePath(this.mostRecentTime, [
+						...this.intermediatePoints,
+						Utilities.pointToVector(turf.along(spreadLine, spreadLineLength / this.units.length * i, { units: "meters" }))
+					], this.waypoints[0]);
+				}
+				this.navigating = true;
 			}
 			else if (this.detectedCollections.has(collection)) {
 				// Remove unseen unit
