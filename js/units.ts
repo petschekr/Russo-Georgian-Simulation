@@ -10,7 +10,7 @@ type WeaponAmmunitionPair = [Weapon, {
 	canResupply: boolean;
 }];
 
-export abstract class Unit {
+export abstract class Unit implements Entity {
 	public abstract readonly id: string;
 	public abstract readonly type: UnitType;
 
@@ -74,7 +74,7 @@ export abstract class Unit {
 		}
 		return false;
 	}
-	public tick(secondsElapsed: number): void {
+	public async tick(secondsElapsed: number): Promise<void> {
 		secondsElapsed;
 		// Engage enemy units
 	}
