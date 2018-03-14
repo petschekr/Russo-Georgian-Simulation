@@ -51,7 +51,7 @@ export namespace Weapons {
 		name: "T-55 D-10",
 		range: 1400,
 		efficacy: new Map([
-			[UnitType.Infantry, 90],
+			[UnitType.Infantry, 50],
 			[UnitType.UnarmoredVehicle, 100],
 			[UnitType.LightArmor, 100],
 			[UnitType.HeavyArmor, 80]

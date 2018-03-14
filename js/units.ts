@@ -1,4 +1,5 @@
 import { Vector2, Waypoint, Entity, Utilities, NAVIGATION_THRESHOLD } from "./common";
+import { AgentCollection } from "./collections";
 import { Weapon, Weapons, UnitType } from "./weapons";
 
 import * as _turf from "@turf/turf";
@@ -13,6 +14,7 @@ type WeaponAmmunitionPair = [Weapon, {
 export abstract class Unit implements Entity {
 	public abstract readonly id: string;
 	public abstract readonly type: UnitType;
+	public abstract readonly container: AgentCollection<Unit>;
 
 	public abstract location: Vector2;
 
@@ -60,9 +62,13 @@ export abstract class Unit implements Entity {
 		if (this.destinationArrived) {
 			return true;
 		}
+		let effectiveSpeed = this.speed * (this.health / 100);
+		if (this.isEngaging) {
+			effectiveSpeed *= 0.2;
+		}
 		// Move to next navpoint (intermedite routed points to next waypoint contained in collection)
 		let secondsNavigating = time - this.navigationBegin;
-		let newLocation = turf.along(this.path, this.speed * secondsNavigating, { units: "meters" });
+		let newLocation = turf.along(this.path, effectiveSpeed * secondsNavigating, { units: "meters" });
 		this.location = turf.coordAll(newLocation)[0] as Vector2;
 
 		if (turf.distance(this.location, this.destination.location, { units: "meters" }) < NAVIGATION_THRESHOLD) {
@@ -77,6 +83,39 @@ export abstract class Unit implements Entity {
 	public async tick(secondsElapsed: number): Promise<void> {
 		secondsElapsed;
 		// Engage enemy units
+	}
+
+	public isEngaging: boolean = false;
+	public engage(collection: AgentCollection<Unit>, secondsElapsed: number): void {
+		// Find best weapon to engage with
+		let distanceToTarget = turf.distance(this.location, collection.location, { units: "meters" });
+
+		let bestWeapon: WeaponAmmunitionPair | undefined;
+		let bestWeaponDamagePerTick: number = 0;
+		for (let weapon of this.weapons) {
+			// Disqualifiers
+			if (distanceToTarget > weapon[0].range || weapon[1].total <= 0) continue;
+
+			let damagePerShot = weapon[0].efficacy.get(collection.type) || 0;
+			let damage = damagePerShot * weapon[0].fireRate / 60 * secondsElapsed * Math.min(1, weapon[1].total / weapon[0].fireRate);
+			if (damage > bestWeaponDamagePerTick) {
+				bestWeapon = weapon;
+				bestWeaponDamagePerTick = damage;
+			}
+		}
+		if (!bestWeapon) return;
+
+		let damage = 0;
+		for (let shot = 0; shot < Math.min(bestWeapon[0].fireRate / 60 * secondsElapsed, bestWeapon[1].total); shot++, bestWeapon[1].total--) {
+			if (Math.random() < bestWeapon[0].accuracy) {
+				damage += (bestWeapon[0].efficacy.get(collection.type) || 0) * ((bestWeapon[0].range - distanceToTarget) / bestWeapon[0].range);
+			}
+		}
+		console.log(`Applying ${damage} damage with ${bestWeapon[0].name}`);
+		if (collection.damage(this.container, damage)) {
+			// Target destroyed
+			this.isEngaging = false;
+		}
 	}
 
 	public abstract setSpeedForGrade(grade: number): void;
@@ -131,9 +170,9 @@ export class TankT55 extends Unit {
 			canResupply: false
 		}]
 	];
-	public health: number = 1000;
+	public health: number = 100;
 
-	constructor(location: Vector2) {
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
 		super();
 		this.id = `T-55_${TankT55.creationCount++}`;
 		this.location = location;
@@ -182,9 +221,9 @@ export class InfantrySquad extends Unit {
 			canResupply: false
 		}]
 	];
-	public health: number = 100 * this.memberCount;
+	public health: number = 100; // * this.memberCount;
 
-	constructor(location: Vector2) {
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
 		super();
 		this.id = `InfantrySquad(${this.memberCount})_${InfantrySquad.creationCount++}`;
 		this.location = location;
