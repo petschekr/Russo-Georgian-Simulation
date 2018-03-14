@@ -19,25 +19,56 @@ export const map = new mapboxgl.Map({
 
 function initializeUnits(): Entity[] {
 	return [
-		new InfantryBattalion([43.952436447143555, 42.20022901694891], 5, [
+		new InfantryBattalion([43.952436447143555, 42.20022901694891], 15, [
 			{ location: [43.89261245727539, 42.21211802] },
-			{ location: [43.95647048950195, 42.22178015985047] },
-			{ location: [43.96831512451172, 42.2162023613838] },
-            { location: [43.97471219301224, 42.23230274125556] },
-            { location: [43.96300435066223, 42.22481516512234] },
-			{ location: [43.969130516052246, 42.20904664356124] },
-			{ location: [43.97483825683594, 42.203654487208524] }
+			{ location: [43.95647048950195, 42.22178015985047] }
 		], "41st Battalion", Team.Georgia),
-		new InfantryBattalion([43.97101879119873, 42.198162518171216], 5, [
-			{ location: [43.95801544189453, 42.19724051999189] },
-			  { location: [43.962392807006836, 42.211609445233606] },
-			  { location: [43.964195251464844, 42.22870802111522] },
-			  { location: [43.98024559020996, 42.22908934920094] },
-			  { location: [43.97320747375488, 42.222670019444934] },
-			  { location: [43.95647048950195, 42.221970845105055] },
-			  { location: [43.95956039428711, 42.21059228368138] },
-			  { location: [43.94951820373535, 42.2107830027201] }
-		], "Test Battalion", Team.Georgia),
+		new InfantryBattalion([43.952436447143555, 42.20022901694891], 15, [
+			{ location: [43.89261245727539, 42.21211802] },
+			{ location: [43.95647048950195, 42.22178015985047] }
+		], "42nd Battalion", Team.Georgia),
+		new InfantryBattalion([43.952436447143555, 42.20022901694891], 15, [
+			{ location: [43.77322196960449, 42.19406111275616] }
+		], "43rd Battalion", Team.Georgia),
+		new TankBattalion([43.952436447143555, 42.20022901694891], 20, [
+		], "44th Armored Battalion", Team.Georgia),
+		
+		new InfantryBattalion([44.03217315673828, 42.21046513733562], 15, [
+			{ location: [44.03114318847656, 42.24090937727564] },
+			{ location: [44.06041145324707, 42.27502251971017] }
+		], "31st Battalion", Team.Georgia),
+		new InfantryBattalion([44.03217315673828, 42.21046513733562], 15, [
+			{ location: [44.03114318847656, 42.24090937727564] },
+			{ location: [44.06041145324707, 42.27502251971017] }
+		], "32nd Battalion", Team.Georgia),
+		new InfantryBattalion([44.03217315673828, 42.21046513733562], 15, [
+			{ location: [44.03114318847656, 42.24090937727564] },
+			{ location: [44.06041145324707, 42.27502251971017] }
+		], "33rd Battalion", Team.Georgia),
+		new TankBattalion([44.03217315673828, 42.21046513733562], 20, [
+			{ location: [44.03114318847656, 42.24090937727564] },
+			{ location: [44.06041145324707, 42.27502251971017] }
+		], "34th Armored Battalion", Team.Georgia),
+		
+		/**Reserve**/
+		new InfantryBattalion([43.99955749511719, 42.15335057390396], 15, [
+		], "53rd Battalion", Team.Georgia),
+		new InfantryBattalion([43.99526596069336, 42.196095951813454], 15, [
+		], "11th Battalion", Team.Georgia),
+		new TankBattalion([43.96385192871094, 42.163594285679395], 20, [
+			{ location: [43.97981643676758, 42.224767496010266] }
+		], "Independent Tank Battalion", Team.Georgia),
+		new InfantryBattalion([44.03672218322754, 42.177080370547195], 15, [
+			{ location: [43.97981643676758, 42.224767496010266] }
+		], "Independent Infantry Battalion", Team.Georgia),
+		
+		/**Far West**/
+		new InfantryBattalion([43.597354888916016, 42.5045977676146], 15, [
+			{ location: [43.631858825683594,  42.509817850023786] }
+		], "Combined Battalion", Team.Georgia),
+		new InfantryBattalion([43.59769821166992, 42.36133451106724], 15, [
+		], "Mountain Rifle Battalion", Team.Georgia),
+		
 		new TankBattalion([44.09646, 42.62257], 10, [
 			{ location: [44.117457, 42.563961] },
 			{ location: [44.059123992919915, 42.452214646756104] },
