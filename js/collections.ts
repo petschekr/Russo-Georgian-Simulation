@@ -171,6 +171,9 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			unit.tick(secondsElapsed);
 		}
 		this.unitsFinishedNavigating = this.units.length === finishedNavigation;
+		if (this.unitsFinishedNavigating) {
+			this.retreating = false;
+		}
 		// Disabled for performance concerns
 		//this.visibilityArea = turf.union(...unitVisibilties);
 		this.visibilityArea = turf.circle(this.location, this.units[0].visibility.range, { units: "meters" });
@@ -198,6 +201,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	private detectedCollections = new Set<AgentCollection<Unit>>();
+	private engagingBecauseDamaged = false;
 	private _engagingCollection: AgentCollection<Unit> | null = null;
 	private get engagingCollection(): AgentCollection<Unit> | null {
 		return this._engagingCollection;
@@ -206,9 +210,16 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		this._engagingCollection = collection;
 		if (!collection) {
 			this.unitsFinishedNavigating = true;
+			this.engagingBecauseDamaged = false;
+			this.retreating = false;
 		}
 		for (let unit of this.units) {
-			unit.isEngaging = !!collection;
+			if (this.engagingBecauseDamaged) {
+				unit.isEngaging = false; // Don't speed limit when retreating
+			}
+			else {
+				unit.isEngaging = !!collection;
+			}
 		}
 	}
 
@@ -235,12 +246,20 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 				this.detectedCollections.add(collection);
 				console.warn("Detected collection:", collection.id);
 			}
-			else if (collection.eliminated || !turf.booleanPointInPolygon(collection.location, this.visibilityArea)) {
+			else if (collection.eliminated || !turf.booleanPointInPolygon(collection.location, this.visibilityArea) && !this.engagingBecauseDamaged) {
 				// Remove unit from detected
 				this.detectedCollections.delete(collection);
 				if (collection === this.engagingCollection) {
 					this.engagingCollection = null;
 				}
+			}
+			else if (
+				this.engagingBecauseDamaged
+				&& this.engagingCollection
+				&& turf.distance(this.location, this.engagingCollection.location, { units: "meters" }) > this.engagingCollection.units[0].visibility.range
+			) {
+				this.detectedCollections.delete(this.engagingCollection);
+				this.engagingCollection = null;
 			}
 		}
 		let closestCollection: AgentCollection<Unit> | undefined;
@@ -269,7 +288,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		if (this.waypoints[0] && this.waypoints[0].temporary) {
 			this.waypoints.shift();
 		}
-		this.waypoints.unshift({ location: Utilities.pointToVector(navigationLocation) });
+		this.waypoints.unshift({ location: Utilities.pointToVector(navigationLocation), temporary: true });
 		this.navigating = false;
 		this.navigationCalculated = false;
 		await this.calculateNavigation();
@@ -293,8 +312,10 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		}
 		console.log("Engaging:", this.engagingCollection.id);
 
-		for (let unit of this.units) {
-			unit.engage(this.engagingCollection, secondsElapsed);
+		if (!this.retreating) {
+			for (let unit of this.units) {
+				unit.engage(this.engagingCollection, secondsElapsed);
+			}
 		}
 
 		// Retreat if bad odds
@@ -311,29 +332,29 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			if (this.waypoints[0] && this.waypoints[0].temporary) {
 				this.waypoints.shift();
 			}
-			this.waypoints.unshift({ location: Utilities.pointToVector(destination) });
+			this.waypoints.unshift({ location: Utilities.pointToVector(destination), temporary: true });
 
-			if (this.waypoints[0]) {
-				let bearingThemToDest = turf.bearing(this.engagingCollection.location, this.waypoints[0].location);
-				let around = turf.lineArc(this.engagingCollection.location, detectionRange * 1.25 / 1000, bearingThemToMe, bearingThemToDest);
-				// Take off non-applicable starting point
-				this.waypoints.shift();
-				turf.coordEach(around, p => {
-					this.waypoints.unshift({ location: p as Vector2 });
-				});
-			}
+			// if (this.waypoints[0]) {
+			// 	let bearingThemToDest = turf.bearing(this.engagingCollection.location, this.waypoints[0].location);
+			// 	let around = turf.lineArc(this.engagingCollection.location, detectionRange * 1.25 / 1000, bearingThemToMe, bearingThemToDest);
+			// 	// Take off non-applicable starting point
+			// 	this.waypoints.shift();
+			// 	turf.coordEach(around, p => {
+			// 		this.waypoints.unshift({ location: p as Vector2 });
+			// 	});
+			// }
 
-			// TODO: NEVER GETS UNSET
-			this.retreating = true;
-
+			
 			this.navigating = false;
 			this.navigationCalculated = false;
-			this.engagingCollection = null;
+			
+			this.retreating = true;
 		}
 	}
 
 	public damage(source: AgentCollection<Unit>, percentage: number): boolean {
 		this.engagingCollection = source;
+		this.engagingBecauseDamaged = true;
 		
 		const damageStep = 1;
 		// Distribute damage randomly among units
