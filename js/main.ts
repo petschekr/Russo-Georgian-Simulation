@@ -17,7 +17,7 @@ export const map = new mapboxgl.Map({
 	bearingSnap: 20
 });
 
-function initializeUnits(): Entity[] {
+function initializeUnits(interdictPercentage: number): Entity[] {
 	return [
 		new InfantryBattalion([43.952436447143555, 42.20022901694891], 5, [
 			{ location: [43.89261245727539, 42.21211802] },
@@ -46,18 +46,38 @@ map.on("load", () => start());
 
 async function start() {
 	const startDate = new Date("2008-08-08T00:00:00+04:00"); // August 8th, 2008 @ midnight
-	const units = initializeUnits();
-	const dispatcher = new Dispatcher(startDate, units);
-	
+	let units: Entity[];
+	let dispatcher: Dispatcher;
+
 	const timeElement = document.getElementById("time")!;
-	timeElement.textContent = dispatcher.formattedTime;
+	timeElement.textContent = "Ready";
+	// const units = initializeUnits();
+	// const dispatcher = new Dispatcher(startDate, units);
+	// timeElement.textContent = dispatcher.formattedTime;
+
+	const scenarioSlider = document.getElementById("scenario") as HTMLInputElement;
+	const scenarioValue = document.getElementById("scenario-value") as HTMLSpanElement;
+	let scenarioPercentage: number = 0;
+	scenarioSlider.addEventListener("input", () => {
+		scenarioPercentage = parseFloat(scenarioSlider.value);
+		scenarioValue.textContent = scenarioPercentage.toString();
+	});
 
 	const stopButton = document.getElementById("stop")!;
 	let shouldStop = true;
+	let firstStart = true;
 	stopButton.addEventListener("click", () => {
 		shouldStop = !shouldStop;
 		if (!shouldStop) {
+			if (firstStart) {
+				firstStart = false;
+				stopButton.textContent = "Initializing...";
+				units = initializeUnits(scenarioPercentage);
+				dispatcher = new Dispatcher(startDate, units);
+				timeElement.textContent = dispatcher.formattedTime;
+			}
 			stopButton.textContent = "Stop";
+			scenarioSlider.disabled = true;
 			update();
 		}
 		else {

@@ -29,3 +29,10 @@ html, body {
 #tick-delay {
     width: 45px;
 }
+
+#scenario {
+    width: 100%;
+}
+label[for="scenario"] {
+    font-size: 85%;
+}
