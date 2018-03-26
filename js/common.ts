@@ -5,14 +5,15 @@ declare const moment: any;
 
 export type Vector2 = [number, number]; // Note! Longitude, Latitude (x, y)
 export interface Waypoint {
-	location: Vector2
+	location: Vector2,
+	temporary?: boolean
 }
 
 export interface Entity {
     readonly id: string;
 	location: Vector2;
 	
-	tick(time: number, secondsElapsed: number): Promise<void>; // Do something every time iteration
+	tick(secondsElapsed: number): Promise<void>; // Do something every time iteration
 }
 
 export const NAVIGATION_THRESHOLD = 10; // 10 meters
@@ -86,7 +87,7 @@ export class Dispatcher {
 		this.time.setSeconds(this.time.getSeconds() + this.secondsPerTick);
 
 		for (let entity of this.entities) {
-			await entity.tick(this.time.valueOf() / 1000, this.secondsPerTick);
+			await entity.tick(this.secondsPerTick);
 		}
 	}
 }

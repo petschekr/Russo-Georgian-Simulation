@@ -125,7 +125,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	private unitsFinishedNavigating: boolean = false;
-	public async tick(time: number, secondsElapsed: number): Promise<void> {
+	public async tick(secondsElapsed: number): Promise<void> {
 		if (this.units.length === 0) {
 			this.eliminated = true;
 			// Hide collection
@@ -155,7 +155,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		}
 		if (!this.navigating && this.navigationCalculated) {
 			for (let unit of this.units) {
-				unit.updatePath(time, this.intermediatePoints, this.waypoints[0]);
+				unit.updatePath(this.intermediatePoints, this.waypoints[0]);
 			}
 			this.navigating = true;
 		}
@@ -164,7 +164,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		let finishedNavigation = 0;
 		let unitVisibilties: GeoFeature<_turf.helpers.Polygon>[] = [];
 		for (let unit of this.units) {
-			if (this.navigating && unit.navigate(time)) {
+			if (this.navigating && unit.navigate(secondsElapsed)) {
 				finishedNavigation++;
 			}
 			//unitVisibilties.push(turf.circle(unit.location, unit.visibility.range, { units: "meters" }));
@@ -175,7 +175,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		//this.visibilityArea = turf.union(...unitVisibilties);
 		this.visibilityArea = turf.circle(this.location, this.units[0].visibility.range, { units: "meters" });
 
-		await this.prepareCombat(time);
+		await this.prepareCombat();
 		await this.combat(secondsElapsed);
 
 		// Update visualizations on map
@@ -212,7 +212,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		}
 	}
 
-	private async prepareCombat(time: number): Promise<void> {
+	private async prepareCombat(): Promise<void> {
 		const visibilityRange = this.units[0].visibility.range;
 		const detectionThreshold = 0.7;
 		const spreadDistance = 300; // meters
@@ -235,10 +235,10 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 				this.detectedCollections.add(collection);
 				console.warn("Detected collection:", collection.id);
 			}
-			else if (this.detectedCollections.has(collection)) {
-				// Remove unseen unit
+			else if (collection.eliminated || !turf.booleanPointInPolygon(collection.location, this.visibilityArea)) {
+				// Remove unit from detected
 				this.detectedCollections.delete(collection);
-				if (this.engagingCollection === collection) {
+				if (collection === this.engagingCollection) {
 					this.engagingCollection = null;
 				}
 			}
@@ -266,13 +266,16 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		let spreadLineLength = turf.length(spreadLine, { units: "meters" });
 		let navigationLocation = turf.centroid(spreadLine);
 		
+		if (this.waypoints[0] && this.waypoints[0].temporary) {
+			this.waypoints.shift();
+		}
 		this.waypoints.unshift({ location: Utilities.pointToVector(navigationLocation) });
 		this.navigating = false;
 		this.navigationCalculated = false;
 		await this.calculateNavigation();
 		// Distribute new path to subunits and include their part of the arc
 		for (let [i, unit] of this.units.entries()) {
-			unit.updatePath(time, [
+			unit.updatePath([
 				...this.intermediatePoints,
 				Utilities.pointToVector(turf.along(spreadLine, spreadLineLength / this.units.length * i, { units: "meters" }))
 			], this.waypoints[0]);
@@ -296,15 +299,18 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 		// Retreat if bad odds
 		if (AgentCollection.areBadOdds(this, this.engagingCollection) && !this.retreating) {
-			console.warn(`${this.id} retreating due to bad odds!`)
+			console.warn(`Retreating due to bad odds: ${this.id}`);
 			
 			let detectionRange = this.engagingCollection.units[0].visibility.range;
 			let bearingThemToMe = turf.bearing(this.engagingCollection.location, this.location);
 
 			let distanceBetween = turf.distance(this.location, this.engagingCollection.location, { units: "meters" });
-			let distance = (detectionRange - distanceBetween) * 1.25;
-			let destination = turf.destination(this.location, distance, bearingThemToMe, { units: "meters" });
+			let backOffDistance = (detectionRange - distanceBetween) * 1.25;
+			let destination = turf.destination(this.location, backOffDistance, bearingThemToMe, { units: "meters" });
 			
+			if (this.waypoints[0] && this.waypoints[0].temporary) {
+				this.waypoints.shift();
+			}
 			this.waypoints.unshift({ location: Utilities.pointToVector(destination) });
 
 			if (this.waypoints[0]) {
@@ -319,6 +325,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 			// TODO: NEVER GETS UNSET
 			this.retreating = true;
+
 			this.navigating = false;
 			this.navigationCalculated = false;
 			this.engagingCollection = null;

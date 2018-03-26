@@ -39,7 +39,6 @@ export abstract class Unit implements Entity {
 	public abstract health: number; // Health points
 
 	private path: _turf.helpers.Feature<_turf.helpers.LineString, _turf.helpers.Properties> = turf.lineString([[0, 0], [0, 0]]);
-	private navigationBegin: number = 0;
 	private destination: Waypoint = { location: [0, 0] };
 	private destinationArrived = true;
 	public get traveling() { return !this.destinationArrived }
@@ -52,13 +51,12 @@ export abstract class Unit implements Entity {
 		return `lat: ${this.location[1]}, long: ${this.location[0]}`
 	}
 
-	public updatePath(time: number, navPoints: Vector2[], destination: Waypoint): void {
-		this.navigationBegin = time;
+	public updatePath(navPoints: Vector2[], destination: Waypoint): void {
 		this.destination = destination;
 		this.destinationArrived = false;
 		this.path = turf.lineString([this.location, ...navPoints]);
 	}
-	public navigate(time: number): boolean {
+	public navigate(secondsElapsed: number): boolean {
 		if (this.destinationArrived) {
 			return true;
 		}
@@ -67,9 +65,11 @@ export abstract class Unit implements Entity {
 			effectiveSpeed *= 0.2;
 		}
 		// Move to next navpoint (intermedite routed points to next waypoint contained in collection)
-		let secondsNavigating = time - this.navigationBegin;
-		let newLocation = turf.along(this.path, effectiveSpeed * secondsNavigating, { units: "meters" });
+		let newLocation = turf.along(this.path, effectiveSpeed * secondsElapsed, { units: "meters" });
 		this.location = turf.coordAll(newLocation)[0] as Vector2;
+		// Consume path as unit moves along it
+		let pathPoints = turf.coordAll(this.path);
+		this.path = turf.lineSlice(newLocation, pathPoints[pathPoints.length - 1], this.path);
 
 		if (turf.distance(this.location, this.destination.location, { units: "meters" }) < NAVIGATION_THRESHOLD) {
 			// Destination arrived
