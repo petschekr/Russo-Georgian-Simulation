@@ -104,7 +104,7 @@ class TerrainType {
 		this.state.snow = true;
 	}
 }
-export type TerrainReturn = { terrain: TerrainType; elevation: number };
+export type TerrainReturn = { terrain: TerrainType; elevation: number | null };
 export async function terrainFeatures(location: Vector2): Promise<TerrainReturn> {
 	return new Promise<TerrainReturn>((resolve, reject) => {
 		let url = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/${location[0]},${location[1]}.json?radius=0&access_token=${mapboxgl.accessToken}`;
@@ -149,7 +149,7 @@ export async function terrainFeatures(location: Vector2): Promise<TerrainReturn>
 
 			resolve({
 				terrain,
-				elevation
+				elevation: elevation !== -Infinity ? elevation : null
 			});
 		};
 		xhr.onerror = err => {

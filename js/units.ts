@@ -209,6 +209,7 @@ export class TankT55 extends Unit {
 	public setSpeedForGrade(grade: number): void {
 		this.speed = this.maxSpeed * Math.exp(-4 * grade);
 		if (grade > this.maxClimbAbility) {
+			console.error(`Max grade exceeded. Speed will be 0. ${this.id}`);
 			this.speed = 0;
 		}
 	}
@@ -261,6 +262,7 @@ export class InfantrySquad extends Unit {
 	public setSpeedForGrade(grade: number): void {
 		this.speed = this.maxSpeed * Math.exp(-1.5 * grade);
 		if (grade > this.maxClimbAbility) {
+			console.error(`Max grade exceeded. Speed will be 0. ${this.id}`);
 			this.speed = 0;
 		}
 	}

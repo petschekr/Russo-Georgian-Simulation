@@ -115,8 +115,13 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		]);
 		
 		// Rise / run
-		let grade = Math.abs(terrainDetails[1].elevation - terrainDetails[0].elevation) / distance;
-		console.log(`Calculated grade for computed route (${terrainDetails[1].elevation - terrainDetails[0].elevation} / ${distance}):`, grade.toFixed(2));
+		let elevation1 = terrainDetails[0].elevation;
+		let elevation2 = terrainDetails[1].elevation;
+		let grade = 0;
+		if (elevation1 !== null && elevation2 !== null) {
+			grade = Math.abs(elevation2 - elevation1) / distance;
+			console.log(`Calculated grade for computed route (${elevation2 - elevation1} / ${distance}):`, grade.toFixed(2));
+		}
 		for (let unit of this.units) {
 			unit.setSpeedForGrade(grade);
 		}
