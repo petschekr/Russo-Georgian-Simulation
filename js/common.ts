@@ -32,7 +32,7 @@ export class Utilities {
 		return radians * (180 / Math.PI);
 	}
 	static pointToVector(point: _turf.Feature<_turf.Point, _turf.Properties>): Vector2 {
-		return turf.coordAll(point)[0] as Vector2;
+		return turf.getCoord(point) as Vector2;
 	}
 	static isEnemy(me: Team, them: Team): boolean {
 		if (me === Team.Georgia && them === Team.Russia) {

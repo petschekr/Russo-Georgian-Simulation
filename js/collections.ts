@@ -104,7 +104,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 		// let chunks = turf.lineChunk(intermediatePath, 1, { units: "kilometers" });
 		// let chunks2 = chunks.features[0];
-		let allCoords = turf.coordAll(intermediatePath);
+		let allCoords = turf.getCoords(intermediatePath);
 		let start = allCoords[0] as Vector2;
 		let end = allCoords[allCoords.length - 1] as Vector2;
 		let distance = turf.distance(start, end, { units: "meters" });

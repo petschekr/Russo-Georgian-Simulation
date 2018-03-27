@@ -64,9 +64,9 @@ export abstract class Unit implements Entity {
 		if (this.isEngaging) {
 			effectiveSpeed *= 0.2;
 		}
-		// Move to next navpoint (intermedite routed points to next waypoint contained in collection)
+		// Move to next navpoint (intermediate routed points to next waypoint contained in collection)
 		let newLocation = turf.along(this.path, effectiveSpeed * secondsElapsed, { units: "meters" });
-		this.location = turf.coordAll(newLocation)[0] as Vector2;
+		this.location = Utilities.pointToVector(newLocation);
 		// Consume path as unit moves along it
 		let pathPoints = turf.coordAll(this.path);
 		this.path = turf.lineSlice(newLocation, pathPoints[pathPoints.length - 1], this.path);
@@ -126,7 +126,7 @@ export abstract class Unit implements Entity {
 		let bearing = Utilities.randomInt(-180, 180);
 
 		let fuzzedLocation = turf.destination(point, distance, bearing, { units: "meters" });
-		this.location = turf.coordAll(fuzzedLocation)[0] as Vector2;
+		this.location = turf.getCoord(fuzzedLocation) as Vector2;
 	}
 }
 
