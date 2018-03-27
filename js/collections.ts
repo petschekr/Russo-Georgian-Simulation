@@ -488,7 +488,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			"type": "circle",
 			"paint": {
 				"circle-radius": 4,
-				"circle-color": this.color,
+				"circle-color": "#111",
 				"circle-stroke-width": 2,
 				"circle-stroke-color": "#FFFFFF"
 			}
