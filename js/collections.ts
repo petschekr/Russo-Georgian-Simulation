@@ -256,6 +256,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			else if (
 				this.engagingBecauseDamaged
 				&& this.engagingCollection
+				&& this.engagingCollection.units.length > 0
 				&& turf.distance(this.location, this.engagingCollection.location, { units: "meters" }) > this.engagingCollection.units[0].visibility.range
 			) {
 				this.detectedCollections.delete(this.engagingCollection);
