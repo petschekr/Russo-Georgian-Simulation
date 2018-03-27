@@ -68,8 +68,35 @@ export abstract class Unit implements Entity {
 		let newLocation = turf.along(this.path, effectiveSpeed * secondsElapsed, { units: "meters" });
 		this.location = Utilities.pointToVector(newLocation);
 		// Consume path as unit moves along it
-		let pathPoints = turf.coordAll(this.path);
-		this.path = turf.lineSlice(newLocation, pathPoints[pathPoints.length - 1], this.path);
+		
+		// let pathPoints = turf.coordAll(this.path);
+		// this.path = turf.lineSlice(newLocation, pathPoints[pathPoints.length - 1], this.path);
+		
+		// turf.lineSlice() is **insanely** slow so this is a good approximation for LineStrings with lots of points
+		function fastDistance(location1: Vector2, location2: Vector2): number { // Returns in meters
+			let dx = location1[0] - location2[0];
+			let dy = location1[1] - location2[1];
+			return turf.radiansToLength(turf.degreesToRadians(Math.sqrt(dx ** 2 + dy ** 2))) * 1000;
+		}
+		const getCoord = (i: number): Vector2 => {
+			return this.path.geometry!.coordinates[i] as Vector2;
+		};
+
+		for (let i = 0; i < this.path.geometry!.coordinates.length - 1; i++) {
+			// Determine if between two points
+			let distanceDirect = fastDistance(getCoord(0), getCoord(1));
+			let distanceViaCurrentLocation = fastDistance(this.location, getCoord(0)) + fastDistance(this.location, getCoord(1));
+			if (Math.abs(distanceDirect - distanceViaCurrentLocation) > 1) { // Less accurate than within a meter
+				this.path.geometry!.coordinates.shift();
+				i--; // Compensate for shifting
+			}
+			else {
+				// Shorten this segment by replacing vertex behind location with location
+				this.path.geometry!.coordinates[0] = this.location;
+				break;
+			}
+		}
+		//this.path.geometry!.coordinates.unshift(this.location);
 
 		if (turf.distance(this.location, this.destination.location, { units: "meters" }) < NAVIGATION_THRESHOLD) {
 			// Destination arrived
