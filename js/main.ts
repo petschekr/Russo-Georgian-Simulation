@@ -8,7 +8,7 @@ import {
 	CobraBattalion,
 	BMP2Battalion,
 	BTR80Battalion,
-	ArtilleryBattalion,
+	//ArtilleryBattalion,
 	MountedInfantryBattalion,
 	AgentCollection
 } from "./collections";
@@ -90,8 +90,8 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		], "4th BMPs", Team.Georgia),
 		new T72Battalion([43.952436447143555, 42.20022901694891], 20, [
 		], "44th Armored Battalion", Team.Georgia),
-		new ArtilleryBattalion([43.952436447143555, 42.20022901694891], 18, [
-		], "45th Artillery Battalion", Team.Georgia),
+		// new ArtilleryBattalion([43.952436447143555, 42.20022901694891], 18, [
+		// ], "45th Artillery Battalion", Team.Georgia),
 		
 		/**East**/
 		new InfantryBattalion([44.03217315673828, 42.21046513733562], 16, [
@@ -118,10 +118,10 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			{ location: [44.03114318847656, 42.24090937727564] },
 			{ location: [44.06041145324707, 42.27502251971017] }
 		], "34th Armored Battalion", Team.Georgia),
-		new ArtilleryBattalion([44.03217315673828, 42.21046513733562], 18, [
-			{ location: [44.03114318847656, 42.24090937727564] },
-			{ location: [44.06041145324707, 42.27502251971017] }
-		], "35th Artillery Battalion", Team.Georgia),
+		// new ArtilleryBattalion([44.03217315673828, 42.21046513733562], 18, [
+		// 	{ location: [44.03114318847656, 42.24090937727564] },
+		// 	{ location: [44.06041145324707, 42.27502251971017] }
+		// ], "35th Artillery Battalion", Team.Georgia),
 
 		/**Center**/
 		new InfantryBattalion([44.03672218322754, 42.177080370547195], 72, [
@@ -148,8 +148,8 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		], "53rd Infantry Battalion", Team.Georgia),
 		new InfantryBattalion([43.99526596069336, 42.196095951813454], 16, [
 		], "11th Infantry Battalion", Team.Georgia),
-		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 18, [
-		], "15th Artillery Battalion", Team.Georgia),
+		// new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 18, [
+		// ], "15th Artillery Battalion", Team.Georgia),
 		
 		/**Far West**/
 		new InfantryBattalion([43.597354888916016, 42.5045977676146], 16, [
@@ -159,12 +159,12 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		], "Independent Mountain Rifle Battalion", Team.Georgia),		
 
 		/**Fire support in Gori**/
-		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 30, [
-		], "Self-Propelled Artillery Battalion", Team.Georgia),
-		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 20, [
-		], "MRL Battalion 1", Team.Georgia),
-		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 20, [
-		], "MRL Battalion 2", Team.Georgia),
+		// new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 30, [
+		// ], "Self-Propelled Artillery Battalion", Team.Georgia),
+		// new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 20, [
+		// ], "MRL Battalion 1", Team.Georgia),
+		// new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 20, [
+		// ], "MRL Battalion 2", Team.Georgia),
 		
 		/**Reinforcements from Abkhazia**/
 		new InfantryBattalion([43.952436447143555, 42.20022901694891], 16, [
@@ -184,8 +184,8 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		], "2nd BMPs", Team.Georgia),
 		new T72Battalion([43.952436447143555, 42.20022901694891], 20, [
 		], "24th Armored Battalion", Team.Georgia),
-		new ArtilleryBattalion([43.952436447143555, 42.20022901694891], 18, [
-		], "25th Artillery Battalion", Team.Georgia),
+		// new ArtilleryBattalion([43.952436447143555, 42.20022901694891], 18, [
+		// ], "25th Artillery Battalion", Team.Georgia),
 		
 		/**RUSSIA**/
 		
@@ -323,27 +323,27 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			{ location: [43.961421, 42.257837] }
 		], "693rd Tank Battalion", Team.Russia),
 		
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "292nd Self-Propelled Artillery Battalion 1", Team.Russia),
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "292nd Self-Propelled Artillery Battalion 2", Team.Russia),
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "292nd Self-Propelled Artillery Battalion 3", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "292nd Self-Propelled Artillery Battalion 1", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "292nd Self-Propelled Artillery Battalion 2", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "292nd Self-Propelled Artillery Battalion 3", Team.Russia),
 		
 		new T72Battalion([44.095118, 42.619849], 30, [
 			{ location: [44.116193, 42.562299] },
@@ -392,27 +392,27 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			{ location: [43.935778, 42.317001] }
 		], "71st Tank Battalion", Team.Russia),
 		
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "50th Self-Propelled Artillery Battalion 1", Team.Russia),
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "50th Self-Propelled Artillery Battalion 2", Team.Russia),
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "50th Self-Propelled Artillery Battalion 3", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "50th Self-Propelled Artillery Battalion 1", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "50th Self-Propelled Artillery Battalion 2", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "50th Self-Propelled Artillery Battalion 3", Team.Russia),
 		
 		/**Other**/
 		new InfantryBattalion([44.020066, 42.653092], 4, [
