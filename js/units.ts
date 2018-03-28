@@ -73,19 +73,14 @@ export abstract class Unit implements Entity {
 		// this.path = turf.lineSlice(newLocation, pathPoints[pathPoints.length - 1], this.path);
 		
 		// turf.lineSlice() is **insanely** slow so this is a good approximation for LineStrings with lots of points
-		function fastDistance(location1: Vector2, location2: Vector2): number { // Returns in meters
-			let dx = location1[0] - location2[0];
-			let dy = location1[1] - location2[1];
-			return turf.radiansToLength(turf.degreesToRadians(Math.sqrt(dx ** 2 + dy ** 2))) * 1000;
-		}
 		const getCoord = (i: number): Vector2 => {
 			return this.path.geometry!.coordinates[i] as Vector2;
 		};
 
 		for (let i = 0; i < this.path.geometry!.coordinates.length - 1; i++) {
 			// Determine if between two points
-			let distanceDirect = fastDistance(getCoord(0), getCoord(1));
-			let distanceViaCurrentLocation = fastDistance(this.location, getCoord(0)) + fastDistance(this.location, getCoord(1));
+			let distanceDirect = Utilities.fastDistance(getCoord(0), getCoord(1));
+			let distanceViaCurrentLocation = Utilities.fastDistance(this.location, getCoord(0)) + Utilities.fastDistance(this.location, getCoord(1));
 			if (Math.abs(distanceDirect - distanceViaCurrentLocation) > 1) { // Less accurate than within a meter
 				this.path.geometry!.coordinates.shift();
 				i--; // Compensate for shifting

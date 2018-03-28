@@ -50,6 +50,11 @@ export class Utilities {
 		}
 		return false;
 	}
+	static fastDistance(location1: Vector2, location2: Vector2): number { // Returns in meters
+		let dx = location1[0] - location2[0];
+		let dy = location1[1] - location2[1];
+		return turf.radiansToLength(turf.degreesToRadians(Math.sqrt(dx ** 2 + dy ** 2))) * 1000;
+	}
 }
 
 // >"Team"

@@ -30,6 +30,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	private color: string;
 
 	private visibilityArea: GeoFeature<_turf.helpers.Polygon | _turf.helpers.MultiPolygon> = turf.polygon([[[0, 0], [0, 0], [0, 0], [0, 0]]]);
+	public abstract maxVisibilityRange: number = 0;
 
 	// Get centroid location average of all included units
 	get location(): Vector2 {
@@ -133,6 +134,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	public async tick(secondsElapsed: number): Promise<void> {
 		if (this.units.length === 0) {
 			this.eliminated = true;
+			this.waypoints = [];
 			// Hide collection
 			for (let {id} of this.sources.values()) {
 				map.setLayoutProperty(id, "visibility", "none");
@@ -181,7 +183,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		}
 		// Disabled for performance concerns
 		//this.visibilityArea = turf.union(...unitVisibilties);
-		this.visibilityArea = turf.circle(this.location, this.units[0].visibility.range, { units: "meters" });
+		this.visibilityArea = turf.circle(this.location, this.maxVisibilityRange, { units: "meters" });
 
 		await this.prepareCombat();
 		await this.combat(secondsElapsed);
@@ -229,7 +231,6 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	private async prepareCombat(): Promise<void> {
-		const visibilityRange = this.units[0].visibility.range;
 		const detectionThreshold = 0.7;
 		const spreadDistance = 300; // meters
 		const recalculateDistance = 200; // meters;
@@ -239,7 +240,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			if (
 				!collection.eliminated
 				&& turf.booleanPointInPolygon(collection.location, this.visibilityArea)
-				&& Math.random() * (visibilityRange / turf.distance(this.location, collection.location, { units: "meters" })) > detectionThreshold
+				&& Math.random() * (this.maxVisibilityRange / turf.distance(this.location, collection.location, { units: "meters" })) > detectionThreshold
 			) {
 				if (this.detectedCollections.has(collection)) {
 					continue;
@@ -262,7 +263,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 				this.engagingBecauseDamaged
 				&& this.engagingCollection
 				&& this.engagingCollection.units.length > 0
-				&& turf.distance(this.location, this.engagingCollection.location, { units: "meters" }) > this.engagingCollection.units[0].visibility.range
+				&& turf.distance(this.location, this.engagingCollection.location, { units: "meters" }) > this.engagingCollection.maxVisibilityRange
 			) {
 				this.detectedCollections.delete(this.engagingCollection);
 				this.engagingCollection = null;
@@ -277,6 +278,9 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 				closestCollectionDistance = distance;
 			}
 		});
+		if (this.engagingBecauseDamaged) {
+			closestCollection = this.engagingCollection!;
+		}
 		if (!closestCollection) return;
 		if (this.waypoints[0] && turf.distance(this.waypoints[0].location, closestCollection.location, { units: "meters" }) < spreadDistance + recalculateDistance) return;
 
@@ -328,7 +332,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		if (AgentCollection.areBadOdds(this, this.engagingCollection) && !this.retreating) {
 			console.warn(`Retreating due to bad odds: ${this.id}`);
 			
-			let detectionRange = this.engagingCollection.units[0].visibility.range;
+			let detectionRange = this.engagingCollection.maxVisibilityRange;
 			let bearingThemToMe = turf.bearing(this.engagingCollection.location, this.location);
 
 			let distanceBetween = turf.distance(this.location, this.engagingCollection.location, { units: "meters" });
@@ -370,20 +374,28 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	public damage(source: AgentCollection<Unit>, percentage: number): boolean {
-		this.engagingCollection = source;
-		this.engagingBecauseDamaged = true;
-		
+		if (
+			!this.engagingCollection 
+			|| !this.engagingBecauseDamaged
+			// Set different target only if taking damage from a closer collection
+			|| Utilities.fastDistance(this.location, source.location) < Utilities.fastDistance(this.location, this.engagingCollection.location)
+		) {
+			this.engagingBecauseDamaged = true;
+			this.engagingCollection = source;
+		}
+
 		const damageStep = 1;
 		// Distribute damage randomly among units
 		for (let i = 0; i < percentage; i += damageStep) {
+			if (this.units.length === 0) {
+				this.eliminated = true;
+				break;
+			}
 			let index = Utilities.randomInt(0, this.units.length - 1);
 			this.units[index].health -= damageStep;
 			if (this.units[index].health <= 0) {
 				// Unit is dead
 				this.units.splice(index, 1);
-				if (this.units.length === 0) {
-					break;
-				}
 			}
 		}
 		return this.eliminated;
@@ -544,6 +556,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 export class InfantryBattalion extends AgentCollection<InfantrySquad> {
 	public readonly type: UnitType;
+	public maxVisibilityRange: number;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let id = `InfantryBattalion_${Team[team]}_${name}`;
@@ -553,11 +566,18 @@ export class InfantryBattalion extends AgentCollection<InfantrySquad> {
 		for (let i = 0; i < unitNumber; i++) {
 			this.units.push(new InfantrySquad(location, this));
 		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
+		}
 	}
 }
 
 export class TankBattalion extends AgentCollection<TankT55> {
 	public readonly type: UnitType;
+	public maxVisibilityRange: number;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let id = `TankBattalion_${Team[team]}_${name}`;
@@ -566,6 +586,12 @@ export class TankBattalion extends AgentCollection<TankT55> {
 		this.type = UnitType.HeavyArmor;
 		for (let i = 0; i < unitNumber; i++) {
 			this.units.push(new TankT55(location, this));
+		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
 		}
 	}
 }
