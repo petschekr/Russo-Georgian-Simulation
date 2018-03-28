@@ -276,11 +276,8 @@ export class TankT72 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-4 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
-		}
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
 
@@ -333,11 +330,8 @@ export class ArtilleryDANA extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-4 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
-		}
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
 
@@ -390,11 +384,8 @@ export class BTR80 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-4 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
-		}
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
 
@@ -447,11 +438,8 @@ export class BMP2 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-4 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
-		}
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
 
@@ -499,11 +487,8 @@ export class Cobra extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-4 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
-		}
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
 

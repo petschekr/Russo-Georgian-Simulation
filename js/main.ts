@@ -1,7 +1,17 @@
 // import * as geojson from "geojson";
 import { Vector2, Utilities, Team, Dispatcher, Entity } from "./common";
 import { InfantrySquad, TankT55 } from "./units";
-import { InfantryBattalion, T72Battalion, MountedInfantryBattalion, AgentCollection } from "./collections";
+import { 
+	InfantryBattalion,
+	T72Battalion,
+	T55Battalion,
+	CobraBattalion,
+	BMP2Battalion,
+	BTR80Battalion,
+	ArtilleryBattalion,
+	MountedInfantryBattalion,
+	AgentCollection
+} from "./collections";
 
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
@@ -9,7 +19,7 @@ declare const turf: typeof _turf;
 const MAPBOX_TOKEN = "pk.eyJ1IjoicGV0c2NoZWtyIiwiYSI6ImNqZHY0YWExZDBlM3ozM2xidWMyZnRwMjkifQ.b65yhhfYo08ptlaRmSungw";
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
-export const DEBUGGING = true;
+export const DEBUGGING = false;
 
 export const map = new mapboxgl.Map({
     container: "map",

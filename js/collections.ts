@@ -1,5 +1,5 @@
 import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD, Utilities } from "./common";
-import { Unit, TankT55, InfantrySquad, MountedInfantrySquad } from "./units";
+import { Unit, TankT55, Cobra, BTR80, TankT72, ArtilleryDANA, BMP2, InfantrySquad, MountedInfantrySquad } from "./units";
 import { UnitType } from "./weapons";
 import { getDirections, terrainAlongLine, terrainFeatures, TerrainReturn, TerrainType } from "./mapdata";
 import { map, dispatcher } from "./main";
@@ -624,43 +624,64 @@ export class CobraBattalion extends AgentCollection<Cobra> {
 		let id = `CobraBattalion_${Team[team]}_${name}`;
 		super(id, team, location, waypoints);
 		
-		this.type = UnitType.HeavyArmor;
+		this.type = UnitType.LightArmor;
 		for (let i = 0; i < unitNumber; i++) {
 			this.units.push(new Cobra(location, this));
+		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
 		}
 	}
 }
 
 export class BTR80Battalion extends AgentCollection<BTR80> {
 	public readonly type: UnitType;
+	public maxVisibilityRange: number;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let id = `BTR80Battalion_${Team[team]}_${name}`;
 		super(id, team, location, waypoints);
 		
-		this.type = UnitType.HeavyArmor;
+		this.type = UnitType.LightArmor;
 		for (let i = 0; i < unitNumber; i++) {
 			this.units.push(new BTR80(location, this));
+		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
 		}
 	}
 }
 
 export class BMP2Battalion extends AgentCollection<BMP2> {
 	public readonly type: UnitType;
+	public maxVisibilityRange: number;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let id = `BMP2Battalion_${Team[team]}_${name}`;
 		super(id, team, location, waypoints);
 		
-		this.type = UnitType.HeavyArmor;
+		this.type = UnitType.LightArmor;
 		for (let i = 0; i < unitNumber; i++) {
 			this.units.push(new BMP2(location, this));
+		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
 		}
 	}
 }
 
 export class T55Battalion extends AgentCollection<TankT55> {
 	public readonly type: UnitType;
+	public maxVisibilityRange: number;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let id = `T55Battalion_${Team[team]}_${name}`;
@@ -681,6 +702,7 @@ export class T55Battalion extends AgentCollection<TankT55> {
 
 export class T72Battalion extends AgentCollection<TankT72> {
 	public readonly type: UnitType;
+	public maxVisibilityRange: number;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let id = `T72Battalion_${Team[team]}_${name}`;
@@ -690,19 +712,32 @@ export class T72Battalion extends AgentCollection<TankT72> {
 		for (let i = 0; i < unitNumber; i++) {
 			this.units.push(new TankT72(location, this));
 		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
+		}
 	}
 }
 
 export class ArtilleryBattalion extends AgentCollection<ArtilleryDANA> {
 	public readonly type: UnitType;
+	public maxVisibilityRange: number;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let id = `ArtilleryBattalion_${Team[team]}_${name}`;
 		super(id, team, location, waypoints);
 		
-		this.type = UnitType.HeavyArmor;
+		this.type = UnitType.UnarmoredVehicle;
 		for (let i = 0; i < unitNumber; i++) {
 			this.units.push(new ArtilleryDANA(location, this));
+		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
 		}
 	}
 }
