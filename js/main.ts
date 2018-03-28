@@ -129,10 +129,10 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 
 map.on("load", () => start());
 
+export let dispatcher: Dispatcher;
 async function start() {
 	const startDate = new Date("2008-08-08T00:00:00+04:00"); // August 8th, 2008 @ midnight
 	let units: Entity[];
-	let dispatcher: Dispatcher;
 
 	const timeElement = document.getElementById("time")!;
 	timeElement.textContent = "Ready";

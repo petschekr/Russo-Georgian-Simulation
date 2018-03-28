@@ -2,7 +2,7 @@ import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD, Utilities } from
 import { Unit, TankT55, InfantrySquad } from "./units";
 import { UnitType } from "./weapons";
 import { getDirections, terrainFeatures, TerrainReturn } from "./mapdata";
-import { map } from "./main";
+import { map, dispatcher } from "./main";
 
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
@@ -492,6 +492,19 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 				"circle-stroke-width": 2,
 				"circle-stroke-color": "#FFFFFF"
 			}
+		});
+
+		// Attach event handlers for unit details
+		map.on("mousemove", this.sources.get("visibility")!.id, (e: any) => {
+			dispatcher.addInfo({
+				name: this.id,
+				color: this.color,
+				team: Team[this.team],
+				health: this.health
+			});
+		});
+		map.on("mouseleave", this.sources.get("visibility")!.id, () => {
+			dispatcher.removeInfo(this.id);
 		});
 	}
 

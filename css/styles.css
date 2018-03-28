@@ -36,3 +36,18 @@ html, body {
 label[for="scenario"] {
     font-size: 85%;
 }
+
+#hover-info {
+    position: absolute;
+    top: 0; left: 0;
+    width: auto;
+    height: auto;
+    background-color: white;
+    border: 1px solid #111;
+    border-radius: 2px;
+    z-index: 10000;
+    text-align: center;
+    padding: 5px;
+
+    display: none;
+}
