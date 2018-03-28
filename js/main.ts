@@ -32,6 +32,12 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 				{ location: [43.969130516052246, 42.20904664356124] },
 				{ location: [43.97483825683594, 42.203654487208524] }
 			], "41st Battalion", Team.Georgia),
+			new TankBattalion([43.957414627075195, 42.20835923876126], 5, [
+				{ location: [43.96301507949829, 42.2256493687579] },
+				{ location: [43.97178053855896, 42.228692132394976] },
+				{ location: [43.973894119262695, 42.2248310548184] },
+				{ location: [43.96911978721619, 42.21902310452333] }
+			], "TestTank Battalion", Team.Georgia),
 			new TankBattalion([44.09646, 42.62257], 5, [
 				{ location: [44.117457, 42.563961] },
 				{ location: [44.059123992919915, 42.452214646756104] },
