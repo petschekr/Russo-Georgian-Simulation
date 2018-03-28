@@ -1,7 +1,7 @@
 // import * as geojson from "geojson";
 import { Vector2, Utilities, Team, Dispatcher, Entity } from "./common";
 import { InfantrySquad, TankT55 } from "./units";
-import { InfantryBattalion, TankBattalion, MountedInfantryBattalion } from "./collections";
+import { InfantryBattalion, TankBattalion, MountedInfantryBattalion, AgentCollection } from "./collections";
 
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
@@ -159,6 +159,13 @@ async function start() {
 		}
 
 		units = initializeUnits(scenarioPercentage);
+		let unitCount = units.reduce((prev, collection) => {
+			if (collection instanceof AgentCollection) {
+				return prev + collection.units.length;
+			}
+			return prev;
+		}, 0);
+		console.info(`Initialized with ${units.length.toLocaleString()} collections and ${unitCount.toLocaleString()} units`);
 		dispatcher = new Dispatcher(startDate, units);
 		timeElement.textContent = dispatcher.formattedTime;
 	}
