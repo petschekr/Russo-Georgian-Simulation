@@ -1,4 +1,4 @@
-import { Vector2 } from "./common";
+import { Vector2, Utilities } from "./common";
 import { UnitType } from "./weapons";
 
 import * as _turf from "@turf/turf";
@@ -56,75 +56,70 @@ export async function getDirections(start: Vector2, end: Vector2, unitType: Unit
 }
 
 // https://www.mapbox.com/vector-tiles/mapbox-terrain/#landcover
+enum Type {
+	Urban = 0x1,
+	Wood = 0x2,
+	Scrub = 0x4,
+	Grass = 0x8,
+	Crop = 0x10,
+	Snow = 0x20
+}
 export class TerrainType {
-	private state = {
-		urban: true, // Lack of a Mapbox description = Empty space in the landcover layer represents either water or bare earth, rock, sand, and built-up areas
-		wood: false, // The area is mostly wooded or forest-like
-		scrub: false, // The area is either mostly bushy or a mix of wooded and grassy
-		grass: false, // The area is mostly grassy
-		crop: false, // The area is mostly agricultural, or thin/patchy grass
-		snow: false // The area is mostly permanent ice, glacier or snow
-	};
+	private state = Type.Urban;
 	get urban() {
-		return this.state.urban;
+		return !!(this.state & Type.Urban);
 	}
 	get wood() {
-		return this.state.wood;
+		return !!(this.state & Type.Wood);
 	}
 	enableWood() {
-		this.state.urban = false;
-		this.state.wood = true;
+		this.state = Type.Wood;
 	}
 	get scrub() {
-		return this.state.wood;
+		return !!(this.state & Type.Scrub);
 	}
 	enableScrub() {
-		this.state.urban = false;
-		this.state.scrub = true;
+		this.state = Type.Scrub;
 	}
 	get grass() {
-		return this.state.grass;
+		return !!(this.state & Type.Grass);
 	}
 	enableGrass() {
-		this.state.urban = false;
-		this.state.grass = true;
+		this.state = Type.Grass;
 	}
 	get crop() {
-		return this.state.crop;
+		return !!(this.state & Type.Crop);
 	}
 	enableCrop() {
-		this.state.urban = false;
-		this.state.crop = true;
+		this.state = Type.Crop;
 	}
 	get snow() {
-		return this.state.snow;
+		return !!(this.state & Type.Snow);
 	}
 	enableSnow() {
-		this.state.urban = false;
-		this.state.snow = true;
+		this.state = Type.Snow;
 	}
 
-	toString() {
-		let types: string[] = [];
-		if (this.state.urban) {
-			types.push("urban");
+	public toString(): string {
+		if (this.state & Type.Urban) {
+			return "urban";
 		}
-		if (this.state.wood) {
-			types.push("wood");
+		if (this.state & Type.Wood) {
+			return "wood";
 		}
-		if (this.state.scrub) {
-			types.push("scrub");
+		if (this.state & Type.Scrub) {
+			return "scrub";
 		}
-		if (this.state.grass) {
-			types.push("grass");
+		if (this.state & Type.Grass) {
+			return "grass";
 		}
-		if (this.state.crop) {
-			types.push("crop");
+		if (this.state & Type.Crop) {
+			return "crop";
 		}
-		if (this.state.snow) {
-			types.push("snow");
+		if (this.state & Type.Snow) {
+			return "snow";
 		}
-		return types.join(" | ");
+		return "N/A";
 	}
 }
 export type TerrainReturn = { terrain: TerrainType; elevation: number | null };
@@ -180,4 +175,16 @@ export async function terrainFeatures(location: Vector2): Promise<TerrainReturn>
 		};
 		xhr.send();
 	});
+}
+
+type LineString = _turf.helpers.Feature<_turf.LineString, _turf.helpers.Properties>;
+export async function terrainAlongLine(line: LineString, sample: number = 1000 /* meters */): Promise<TerrainReturn[]> { 
+	let length = turf.length(line, { units: "meters" });
+	let reducedPointCount = Math.ceil(length / sample) + 1;
+	let reducedPoints: Vector2[] = [];
+	for (let i = 0; i < reducedPointCount; i++) {
+		reducedPoints.push(Utilities.pointToVector(turf.along(line, i * sample, { units: "meters" })));
+	}
+
+	return Promise.all(reducedPoints.map(point => terrainFeatures(point)));
 }
