@@ -252,7 +252,7 @@ function initializeUnits(): Entity[] {
 			{ location: [44.117457, 42.563961] },
 			{ location: [43.949769, 42.290389] },
 			{ location: [43.961421, 42.257837] }
-		], "503rd MR Battalion 2 BMPs", Team.Russia),
+		], "693rd MR Battalion 1 BMPs", Team.Russia),
 		new InfantryBattalion([44.095098, 42.619851], 16, [
 			{ location: [44.117457, 42.563961] },
 			{ location: [43.949769, 42.290389] },
@@ -262,7 +262,7 @@ function initializeUnits(): Entity[] {
 			{ location: [44.117457, 42.563961] },
 			{ location: [43.949769, 42.290389] },
 			{ location: [43.961421, 42.257837] }
-		], "503rd MR Battalion 2 BMPs", Team.Russia),
+		], "693rd MR Battalion 2 BMPs", Team.Russia),
 		new InfantryBattalion([44.095098, 42.619851], 16, [
 			{ location: [44.117457, 42.563961] },
 			{ location: [43.949769, 42.290389] },
@@ -272,7 +272,7 @@ function initializeUnits(): Entity[] {
 			{ location: [44.117457, 42.563961] },
 			{ location: [43.949769, 42.290389] },
 			{ location: [43.961421, 42.257837] }
-		], "503rd MR Battalion 2 BMPs", Team.Russia),
+		], "693rd MR Battalion 3 BMPs", Team.Russia),
 		new T72Battalion([44.095098, 42.619851], 30, [
 			{ location: [44.117457, 42.563961] },
 			{ location: [43.949769, 42.290389] },
