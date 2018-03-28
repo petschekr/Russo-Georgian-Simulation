@@ -40,7 +40,7 @@ export async function getDirections(start: Vector2, end: Vector2, unitType: Unit
 					catch (err) {
 						reject(err);
 					}
-				}, 2000);
+				}, 15000);
 				return;
 			}
 			resolve([
@@ -130,6 +130,20 @@ export async function terrainFeatures(location: Vector2): Promise<TerrainReturn>
 		xhr.open("GET", url, true);
 		xhr.responseType = "json";
 		xhr.onload = () => {
+			if (xhr.status === 429) {
+				// Too many request -- wait a bit
+				console.warn("Too many requests made to Mapbox! Waiting before retrying");
+				window.setTimeout(async () => {
+					try {
+						resolve(await terrainFeatures(location));
+					}
+					catch (err) {
+						reject(err);
+					}
+				}, 15000);
+				return;
+			}
+
 			let featureCollection: _turf.FeatureCollection = xhr.response;
 			let terrain: TerrainType = new TerrainType();
 			let elevation = -Infinity;
@@ -179,7 +193,7 @@ export async function terrainFeatures(location: Vector2): Promise<TerrainReturn>
 }
 
 type LineString = _turf.helpers.Feature<_turf.LineString, _turf.helpers.Properties>;
-export async function terrainAlongLine(line: LineString, sample: number = 500 /* meters */): Promise<TerrainReturn[]> { 
+export async function terrainAlongLine(line: LineString, sample: number = 1000 /* meters */): Promise<TerrainReturn[]> { 
 	let length = turf.length(line, { units: "meters" });
 	let reducedPointCount = Math.ceil(length / sample) + 1;
 	let reducedPoints: Vector2[] = [];
