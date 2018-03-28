@@ -142,7 +142,7 @@ export class TankT55 extends Unit {
 	public blocksOthers = true;
 
 	// public readonly maxSpeed = 13; // ~30 miles per hour
-	public readonly maxSpeed = 4.47;
+	public readonly maxSpeed = 13;
 	public speed = this.maxSpeed;
 
 	public rotationSpeed = Infinity;
@@ -150,18 +150,18 @@ export class TankT55 extends Unit {
 	public movement = {
 		steppe: 0.7,
 		forest: 0.1,
-		urban: 0.25
+		urban: 0.2
 	};
 
 	public visibility = {
-		range: 1600,
+		range: 1400,
 		fieldOfView: Utilities.degreesToRadians(80)
 	};
 	
 	public weapons: WeaponAmmunitionPair[] = [
 		[Weapons.D10, {
 			magazine: 1,
-			total: 35,
+			total: 43,
 			canResupply: false
 		}],
 		[Weapons.SGMT, {
@@ -187,13 +187,293 @@ export class TankT55 extends Unit {
 	}
 }
 
+export class TankT72 extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.HeavyArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 22;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.7,
+		forest: 0.1,
+		urban: 0.2
+	};
+
+	public visibility = {
+		range: 1600,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.D81, {
+			magazine: 1,
+			total: 39,
+			canResupply: false
+		}],
+		[Weapons.PKMT, {
+			magazine: 250,
+			total: 500,
+			canResupply: false
+		}]
+	];
+	public health: number = 100;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `T-72_${TankT72.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForGrade(grade: number): void {
+		this.speed = this.maxSpeed * Math.exp(-4 * grade);
+		if (grade > this.maxClimbAbility) {
+			this.speed = 0;
+		}
+	}
+}
+
+export class ArtilleryDANA extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.UnarmoredVehicle;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 22;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.5;
+	public movement = {
+		steppe: 0.8,
+		forest: 0.2,
+		urban: 0.3
+	};
+
+	public visibility = {
+		range: 18700,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.DANA, {
+			magazine: 1,
+			total: 60,
+			canResupply: false
+		}],
+		[Weapons.DShkM, {
+			magazine: 50,
+			total: 2000,
+			canResupply: false
+		}]
+	];
+	public health: number = 100;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `DANA_${ArtilleryDANA.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForGrade(grade: number): void {
+		this.speed = this.maxSpeed * Math.exp(-4 * grade);
+		if (grade > this.maxClimbAbility) {
+			this.speed = 0;
+		}
+	}
+}
+
+export class BTR80 extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.LightArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 24;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.7,
+		forest: 0.3,
+		urban: 0.3
+	};
+
+	public visibility = {
+		range: 700,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.KPVT, {
+			magazine: 250,
+			total: 500,
+			canResupply: false
+		}],
+		[Weapons.PKMT, {
+			magazine: 250,
+			total: 2000,
+			canResupply: false
+		}]
+	];
+	public health: number = 100;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `BTR80_${BTR80.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForGrade(grade: number): void {
+		this.speed = this.maxSpeed * Math.exp(-4 * grade);
+		if (grade > this.maxClimbAbility) {
+			this.speed = 0;
+		}
+	}
+}
+
+export class BMP2 extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.LightArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 18;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.7,
+		forest: 0.2,
+		urban: 0.25
+	};
+
+	public visibility = {
+		range: 900,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.S2A42, {
+			magazine: 50,
+			total: 500,
+			canResupply: false
+		}],
+		[Weapons.PKMT, {
+			magazine: 250,
+			total: 2000,
+			canResupply: false
+		}]
+	];
+	public health: number = 100;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `BMP2_${BMP2.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForGrade(grade: number): void {
+		this.speed = this.maxSpeed * Math.exp(-4 * grade);
+		if (grade > this.maxClimbAbility) {
+			this.speed = 0;
+		}
+	}
+}
+
+export class Cobra extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.LightArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 32;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.8,
+		forest: 0.4,
+		urban: 0.4
+	};
+
+	public visibility = {
+		range: 600,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.NSV, {
+			magazine: 250,
+			total: 500,
+			canResupply: false
+		}]
+	];
+	public health: number = 100;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `Cobra_${Cobra.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForGrade(grade: number): void {
+		this.speed = this.maxSpeed * Math.exp(-4 * grade);
+		if (grade > this.maxClimbAbility) {
+			this.speed = 0;
+		}
+	}
+}
+
 export class InfantrySquad extends Unit {
 	public readonly id: string;
 	public readonly type = UnitType.Infantry;
 	public location: Vector2;
 	
 	private static creationCount = 0;
-	protected memberCount: number = 4; // Soldiers in squad, multiply ammo by this
+	protected memberCount: number = 30; // Soldiers in squad, multiply ammo by this
 
 	public outOfAction = false;
 	public outOfActionDecay = 60 * 5;
@@ -204,8 +484,8 @@ export class InfantrySquad extends Unit {
 	public rotationSpeed = Infinity;
 	public maxClimbAbility = 1;
 	public movement = {
-		steppe: 0.95,
-		forest: 0.9,
+		steppe: 0.9,
+		forest: 0.8,
 		urban: 0.6
 	};
 

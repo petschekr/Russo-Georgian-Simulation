@@ -18,84 +18,323 @@ export const map = new mapboxgl.Map({
 });
 
 function initializeUnits(): Entity[] {
+	/**Unit/collection types: InfantryBattalion, InfantryBattalion, ArtilleryBattalion, TankBattalion**/
 	return [
+		/**GEORGIA**/
+		
 		/**West**/
-		new InfantryBattalion([43.952436447143555, 42.20022901694891], 15, [
+		new InfantryBattalion([43.952436447143555, 42.20022901694891], 16, [
 			{ location: [43.89261245727539, 42.21211802] },
 			{ location: [43.95647048950195, 42.22178015985047] }
-		], "41st Battalion", Team.Georgia),
-		new InfantryBattalion([43.952436447143555, 42.20022901694891], 15, [
+		], "41st Infantry Battalion", Team.Georgia),
+		new InfantryBattalion([43.952436447143555, 42.20022901694891], 16, [
 			{ location: [43.89261245727539, 42.21211802] },
 			{ location: [43.95647048950195, 42.22178015985047] }
-		], "42nd Battalion", Team.Georgia),
-		new InfantryBattalion([43.952436447143555, 42.20022901694891], 15, [
+		], "42nd Infantry Battalion", Team.Georgia),
+		new InfantryBattalion([43.952436447143555, 42.20022901694891], 16, [
 			{ location: [43.77322196960449, 42.19406111275616] }
-		], "43rd Battalion", Team.Georgia),
+		], "43rd Infantry Battalion", Team.Georgia),
+		new BTR80Battalion([43.952436447143555, 42.20022901694891], 10, [
+			{ location: [43.77322196960449, 42.19406111275616] }
+		], "4th BTRs", Team.Georgia),
+		new BMP2Battalion([43.952436447143555, 42.20022901694891], 16, [
+			{ location: [43.77322196960449, 42.19406111275616] }
+		], "4th BMPs", Team.Georgia),
 		new TankBattalion([43.952436447143555, 42.20022901694891], 20, [
 		], "44th Armored Battalion", Team.Georgia),
+		new ArtilleryBattalion([43.952436447143555, 42.20022901694891], 18, [
+		], "45th Artillery Battalion", Team.Georgia),
 		
 		/**East**/
-		new InfantryBattalion([44.03217315673828, 42.21046513733562], 15, [
+		new InfantryBattalion([44.03217315673828, 42.21046513733562], 16, [
 			{ location: [44.03114318847656, 42.24090937727564] },
 			{ location: [44.06041145324707, 42.27502251971017] }
-		], "31st Battalion", Team.Georgia),
-		new InfantryBattalion([44.03217315673828, 42.21046513733562], 15, [
+		], "31st Infantry Battalion", Team.Georgia),
+		new InfantryBattalion([44.03217315673828, 42.21046513733562], 16, [
 			{ location: [44.03114318847656, 42.24090937727564] },
 			{ location: [44.06041145324707, 42.27502251971017] }
-		], "32nd Battalion", Team.Georgia),
-		new InfantryBattalion([44.03217315673828, 42.21046513733562], 15, [
+		], "32nd Infantry Battalion", Team.Georgia),
+		new InfantryBattalion([44.03217315673828, 42.21046513733562], 16, [
 			{ location: [44.03114318847656, 42.24090937727564] },
 			{ location: [44.06041145324707, 42.27502251971017] }
-		], "33rd Battalion", Team.Georgia),
+		], "33rd Infantry Battalion", Team.Georgia),
+		new BTR80Battalion([44.03217315673828, 42.21046513733562], 10, [
+			{ location: [44.03114318847656, 42.24090937727564] },
+			{ location: [44.06041145324707, 42.27502251971017] }
+		], "3rd BTRs", Team.Georgia),
+		new BMP2Battalion([44.03217315673828, 42.21046513733562], 16, [
+			{ location: [44.03114318847656, 42.24090937727564] },
+			{ location: [44.06041145324707, 42.27502251971017] }
+		], "3rd BMPs", Team.Georgia),
 		new TankBattalion([44.03217315673828, 42.21046513733562], 20, [
 			{ location: [44.03114318847656, 42.24090937727564] },
 			{ location: [44.06041145324707, 42.27502251971017] }
 		], "34th Armored Battalion", Team.Georgia),
-		
-		/**Reserve**/
-		new InfantryBattalion([43.99955749511719, 42.15335057390396], 15, [
-		], "53rd Battalion", Team.Georgia),
-		new InfantryBattalion([43.99526596069336, 42.196095951813454], 15, [
-		], "11th Battalion", Team.Georgia),
+		new ArtilleryBattalion([44.03217315673828, 42.21046513733562], 18, [
+			{ location: [44.03114318847656, 42.24090937727564] },
+			{ location: [44.06041145324707, 42.27502251971017] }
+		], "35th Artillery Battalion", Team.Georgia),
+
+		/**Center**/
+		new InfantryBattalion([44.03672218322754, 42.177080370547195], 72, [
+			{ location: [43.97981643676758, 42.224767496010266] }
+		], "Interior Ministry special task forces", Team.Georgia),
+		new CobraBattalion([44.03672218322754, 42.177080370547195], 70, [
+			{ location: [43.97981643676758, 42.224767496010266] }
+		], "Interior Ministry special task force Cobras", Team.Georgia),
+		new InfantryBattalion([44.03672218322754, 42.177080370547195], 8, [
+			{ location: [43.97981643676758, 42.224767496010266] }
+		], "Georgian Special Operations Group", Team.Georgia),
+		new InfantryBattalion([44.03672218322754, 42.177080370547195], 16, [
+			{ location: [43.97981643676758, 42.224767496010266] }
+		], "Independent Light Infantry Battalion", Team.Georgia),
+		new BMP2Battalion([43.96385192871094, 42.163594285679395], 16, [
+			{ location: [43.97981643676758, 42.224767496010266] }
+		], "ICT BMPs", Team.Georgia),
 		new TankBattalion([43.96385192871094, 42.163594285679395], 20, [
 			{ location: [43.97981643676758, 42.224767496010266] }
-		], "Independent Tank Battalion", Team.Georgia),
-		new InfantryBattalion([44.03672218322754, 42.177080370547195], 15, [
-			{ location: [43.97981643676758, 42.224767496010266] }
-		], "Independent Infantry Battalion", Team.Georgia),
+		], "Independent Combined Tank Battalion", Team.Georgia),
+		
+		/**Reserve**/
+		new InfantryBattalion([43.99955749511719, 42.15335057390396], 16, [
+		], "Georgian Peacekeeper Battalion", Team.Georgia),
+		
+		new InfantryBattalion([43.99955749511719, 42.15335057390396], 16, [
+		], "53rd Infantry Battalion", Team.Georgia),
+		new InfantryBattalion([43.99526596069336, 42.196095951813454], 16, [
+		], "11th Infantry Battalion", Team.Georgia),
+		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 18, [
+		], "15th Artillery Battalion", Team.Georgia),
 		
 		/**Far West**/
-		new InfantryBattalion([43.597354888916016, 42.5045977676146], 15, [
+		new InfantryBattalion([43.597354888916016, 42.5045977676146], 16, [
 			{ location: [43.631858825683594,  42.509817850023786] }
-		], "Combined Battalion", Team.Georgia),
-		new InfantryBattalion([43.59769821166992, 42.36133451106724], 15, [
-		], "Mountain Rifle Battalion", Team.Georgia),
+		], "Interior Ministry Combined Battalion", Team.Georgia),
+		new InfantryBattalion([43.59769821166992, 42.36133451106724], 16, [
+		], "Independent Mountain Rifle Battalion", Team.Georgia),		
+
+		/**Fire support in Gori**/
+		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 30, [
+		], "Self-Propelled Artillery Battalion", Team.Georgia),
+		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 20, [
+		], "MRL Battalion 1", Team.Georgia),
+		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 20, [
+		], "MRL Battalion 2", Team.Georgia),
 		
-		/**Russian Tanks**/
-		new TankBattalion([44.095247, 42.619793], 26, [
-		], "429 Motorized Rifle Regiment", Team.Russia),
-		new TankBattalion([44.094480, 42.620106], 26, [
+		/**Reinforcements from Abkhazia**/
+		new InfantryBattalion([43.952436447143555, 42.20022901694891], 16, [
+			{ location: [43.89261245727539, 42.21211802] },
+			{ location: [43.95647048950195, 42.22178015985047] }
+		], "21st Infantry Battalion", Team.Georgia),
+		new InfantryBattalion([43.952436447143555, 42.20022901694891], 16, [
+			{ location: [43.89261245727539, 42.21211802] },
+			{ location: [43.95647048950195, 42.22178015985047] }
+		], "22nd Infantry Battalion", Team.Georgia),
+		new InfantryBattalion([43.952436447143555, 42.20022901694891], 16, [
+			{ location: [43.77322196960449, 42.19406111275616] }
+		], "23rd Infantry Battalion", Team.Georgia),
+		new BTR80Battalion([43.952436447143555, 42.20022901694891], 10, [
+		], "2nd BTRs", Team.Georgia),
+		new BMP2Battalion([43.952436447143555, 42.20022901694891], 16, [
+		], "2nd BMPs", Team.Georgia),
+		new TankBattalion([43.952436447143555, 42.20022901694891], 20, [
+		], "24th Armored Battalion", Team.Georgia),
+		new ArtilleryBattalion([43.952436447143555, 42.20022901694891], 18, [
+		], "25th Artillery Battalion", Team.Georgia),
+		
+		/**RUSSIA**/
+		new InfantryBattalion([43.99955749511719, 42.15335057390396], 16, [
+		], "Russian Peacekeeper Battalion", Team.Russia),
+		
+		/**19th MR Division**/
+		new InfantryBattalion([44.095247, 42.619793], 16, [
+		], "135th MR Battalion 1", Team.Russia),
+		new BMP2Battalion([44.095247, 42.619793], 30, [
+		], "135th MR Battalion 1 BMPs", Team.Russia),
+		new InfantryBattalion([44.095247, 42.619793], 16, [
+		], "135th MR Battalion 2", Team.Russia),
+		new BMP2Battalion([44.095247, 42.619793], 30, [
+		], "135th MR Battalion 2 BMPs", Team.Russia),
+		
+		new InfantryBattalion([44.095247, 42.619793], 16, [
+		], "429th MR Battalion 1", Team.Russia),
+		new BMP2Battalion([44.095247, 42.619793], 30, [
+		], "429th MR Battalion 1 BMPs", Team.Russia),
+		new InfantryBattalion([44.095247, 42.619793], 16, [
+		], "429th MR Battalion 2", Team.Russia),
+		new BMP2Battalion([44.095247, 42.619793], 30, [
+		], "429th MR Battalion 2 BMPs", Team.Russia),
+		new TankBattalion([44.095247, 42.619793], 10, [
+		], "429th Tank Company 1", Team.Russia),
+		new TankBattalion([44.095247, 42.619793], 10, [
+		], "429th Tank Company 2", Team.Russia),
+		
+		new InfantryBattalion([44.094480, 42.620106], 16, [
 			{ location: [43.928737, 42.225538] },
 			{ location: [43.956550, 42.221885] }
-		], "503 Motorized Rifle Regiment", Team.Russia),
-		new TankBattalion([44.095098, 42.619851], 26, [
+		], "503rd MR Battalion 1", Team.Russia),
+		new BMP2Battalion([44.094480, 42.620106], 30, [
+			{ location: [43.928737, 42.225538] },
+			{ location: [43.956550, 42.221885] }
+		], "503rd MR Battalion 1 BMPs", Team.Russia),
+		new InfantryBattalion([44.094480, 42.620106], 16, [
+			{ location: [43.928737, 42.225538] },
+			{ location: [43.956550, 42.221885] }
+		], "503rd MR Battalion 2", Team.Russia),
+		new BMP2Battalion([44.094480, 42.620106], 30, [
+			{ location: [43.928737, 42.225538] },
+			{ location: [43.956550, 42.221885] }
+		], "503rd MR Battalion 2 BMPs", Team.Russia),
+		new TankBattalion([44.094480, 42.620106], 10, [
+			{ location: [43.928737, 42.225538] },
+			{ location: [43.956550, 42.221885] }
+		], "503rd Tank Company", Team.Russia),
+		
+		new InfantryBattalion([44.095098, 42.619851], 16, [
 			{ location: [44.117457, 42.563961] },
 			{ location: [43.949769, 42.290389] },
 			{ location: [43.961421, 42.257837] }
-		], "693 Motorized Rifle Regiment", Team.Russia),
-		new TankBattalion([44.095118, 42.619849], 26, [
+		], "693rd MR Battalion 1", Team.Russia),
+		new BMP2Battalion([44.095098, 42.619851], 30, [
+			{ location: [44.117457, 42.563961] },
+			{ location: [43.949769, 42.290389] },
+			{ location: [43.961421, 42.257837] }
+		], "503rd MR Battalion 2 BMPs", Team.Russia),
+		new InfantryBattalion([44.095098, 42.619851], 16, [
+			{ location: [44.117457, 42.563961] },
+			{ location: [43.949769, 42.290389] },
+			{ location: [43.961421, 42.257837] }
+		], "693rd MR Battalion 2", Team.Russia),
+		new BMP2Battalion([44.095098, 42.619851], 30, [
+			{ location: [44.117457, 42.563961] },
+			{ location: [43.949769, 42.290389] },
+			{ location: [43.961421, 42.257837] }
+		], "503rd MR Battalion 2 BMPs", Team.Russia),
+		new InfantryBattalion([44.095098, 42.619851], 16, [
+			{ location: [44.117457, 42.563961] },
+			{ location: [43.949769, 42.290389] },
+			{ location: [43.961421, 42.257837] }
+		], "693rd MR Battalion 3", Team.Russia),
+		new BMP2Battalion([44.095098, 42.619851], 30, [
+			{ location: [44.117457, 42.563961] },
+			{ location: [43.949769, 42.290389] },
+			{ location: [43.961421, 42.257837] }
+		], "503rd MR Battalion 2 BMPs", Team.Russia),
+		new TankBattalion([44.095098, 42.619851], 30, [
+			{ location: [44.117457, 42.563961] },
+			{ location: [43.949769, 42.290389] },
+			{ location: [43.961421, 42.257837] }
+		], "693rd Tank Battalion", Team.Russia),
+		
+		new ArtilleryBattalion([44.095118, 42.619849], 18, [
 			{ location: [44.116193, 42.562299] },
 			{ location: [43.889027, 42.216375] },
 			{ location: [43.934431, 42.225161] },
 			{ location: [43.958110, 42.221842] },
 			{ location: [43.938932, 42.225042] }
-		], "141 Motorized Rifle Regiment", Team.Russia),
-		new TankBattalion([44.021421, 42.658106], 26, [
+		], "292nd Self-Propelled Artillery Battalion 1", Team.Russia),
+		new ArtilleryBattalion([44.095118, 42.619849], 18, [
+			{ location: [44.116193, 42.562299] },
+			{ location: [43.889027, 42.216375] },
+			{ location: [43.934431, 42.225161] },
+			{ location: [43.958110, 42.221842] },
+			{ location: [43.938932, 42.225042] }
+		], "292nd Self-Propelled Artillery Battalion 2", Team.Russia),
+		new ArtilleryBattalion([44.095118, 42.619849], 18, [
+			{ location: [44.116193, 42.562299] },
+			{ location: [43.889027, 42.216375] },
+			{ location: [43.934431, 42.225161] },
+			{ location: [43.958110, 42.221842] },
+			{ location: [43.938932, 42.225042] }
+		], "292nd Self-Propelled Artillery Battalion 3", Team.Russia),
+		
+		new TankBattalion([44.095118, 42.619849], 30, [
+			{ location: [44.116193, 42.562299] },
+			{ location: [43.889027, 42.216375] },
+			{ location: [43.934431, 42.225161] },
+			{ location: [43.958110, 42.221842] },
+			{ location: [43.938932, 42.225042] }
+		], "141st Independent Tank Battalion", Team.Russia),
+		
+		/**42nd MR Division**/
+		new InfantryBattalion([44.021421, 42.658106], 16, [
 			{ location: [43.931235, 42.320023] }
-		], "70 Motorized Rifle Regiment", Team.Russia),
-		new TankBattalion([44.020066, 42.653092], 26, [
+		], "70th MR Battalion 1", Team.Russia),
+		new BMP2Battalion([44.021421, 42.658106], 30, [
+			{ location: [43.931235, 42.320023] }
+		], "70th MR Battalion 1 BMPs", Team.Russia),
+		new InfantryBattalion([44.021421, 42.658106], 16, [
+			{ location: [43.931235, 42.320023] }
+		], "70th MR Battalion 2", Team.Russia),
+		new BMP2Battalion([44.021421, 42.658106], 30, [
+			{ location: [43.931235, 42.320023] }
+		], "70th MR Battalion 2 BMPs", Team.Russia),
+		new TankBattalion([44.021421, 42.658106], 10, [
+			{ location: [43.931235, 42.320023] }
+		], "70th Tank Company", Team.Russia),
+		
+		new InfantryBattalion([44.020066, 42.653092], 16, [
 			{ location: [43.935778, 42.317001] }
-		], "71 Motorized Rifle Regiment", Team.Russia)
+		], "71st MR Battalion 1", Team.Russia),
+		new BMP2Battalion([44.020066, 42.653092], 30, [
+			{ location: [43.935778, 42.317001] }
+		], "71st MR Battalion 1 BMPs", Team.Russia),
+		new InfantryBattalion([44.020066, 42.653092], 16, [
+			{ location: [43.935778, 42.317001] }
+		], "71st MR Battalion 2", Team.Russia),
+		new BMP2Battalion([44.020066, 42.653092], 30, [
+			{ location: [43.935778, 42.317001] }
+		], "71st MR Battalion 2 BMPs", Team.Russia),
+		new InfantryBattalion([44.020066, 42.653092], 16, [
+			{ location: [43.935778, 42.317001] }
+		], "71st MR Battalion 3", Team.Russia),
+		new BMP2Battalion([44.020066, 42.653092], 30, [
+			{ location: [43.935778, 42.317001] }
+		], "71st MR Battalion 3 BMPs", Team.Russia),
+		new TankBattalion([44.020066, 42.653092], 30, [
+			{ location: [43.935778, 42.317001] }
+		], "71st Tank Battalion", Team.Russia),
+		
+		new ArtilleryBattalion([44.095118, 42.619849], 18, [
+			{ location: [44.116193, 42.562299] },
+			{ location: [43.889027, 42.216375] },
+			{ location: [43.934431, 42.225161] },
+			{ location: [43.958110, 42.221842] },
+			{ location: [43.938932, 42.225042] }
+		], "50th Self-Propelled Artillery Battalion 1", Team.Russia),
+		new ArtilleryBattalion([44.095118, 42.619849], 18, [
+			{ location: [44.116193, 42.562299] },
+			{ location: [43.889027, 42.216375] },
+			{ location: [43.934431, 42.225161] },
+			{ location: [43.958110, 42.221842] },
+			{ location: [43.938932, 42.225042] }
+		], "50th Self-Propelled Artillery Battalion 2", Team.Russia),
+		new ArtilleryBattalion([44.095118, 42.619849], 18, [
+			{ location: [44.116193, 42.562299] },
+			{ location: [43.889027, 42.216375] },
+			{ location: [43.934431, 42.225161] },
+			{ location: [43.958110, 42.221842] },
+			{ location: [43.938932, 42.225042] }
+		], "50th Self-Propelled Artillery Battalion 3", Team.Russia),
+		
+		/**Other**/
+		new InfantryBattalion([44.020066, 42.653092], 4, [
+			{ location: [43.935778, 42.317001] }
+		], "Vostok Battalion", Team.Russia),
+		new InfantryBattalion([44.020066, 42.653092], 4, [
+			{ location: [43.935778, 42.317001] }
+		], "Zapad Battalion", Team.Russia),
+		new InfantryBattalion([44.020066, 42.653092], 8, [
+			{ location: [43.935778, 42.317001] }
+		], "10th Indepdendent Spetsnaz Brigade", Team.Russia),
+		new InfantryBattalion([44.020066, 42.653092], 8, [
+			{ location: [43.935778, 42.317001] }
+		], "22nd Indepdendent Spetsnaz Brigade", Team.Russia),
+		new InfantryBattalion([44.020066, 42.653092], 8, [
+			{ location: [43.935778, 42.317001] }
+		], "45th Indepdendent Recon Spetsnaz Regiment", Team.Russia),
+		
+		/**SOUTH OSSETIA**/
 	];
 }
 
