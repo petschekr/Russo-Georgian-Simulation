@@ -15,8 +15,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 	public readonly id: string;
 	public abstract readonly type: UnitType;
-	protected _team: Team = Team.None;
-	public get team(): Team { return this._team }
+	protected readonly team: Team;
 	public eliminated: boolean = false;
 
 	public waypoints: Waypoint[];
@@ -63,7 +62,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	constructor(id: string, team: Team, private readonly defaultLocation: Vector2, waypoints: Waypoint[]) {
 		AgentCollection.instances.push(this);
 		this.id = id.replace(/ /g, "_");
-		this._team = team;
+		this.team = team;
 		this.waypoints = waypoints;
 		if (this.waypoints.length === 0) {
 			this.waypoints = [{ location: this.location }];
@@ -264,13 +263,17 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			else if (
 				this.engagingBecauseDamaged
 				&& this.engagingCollection
-				&& this.engagingCollection.units.length > 0
+				&& !this.engagingCollection.eliminated
 				&& turf.distance(this.location, this.engagingCollection.location, { units: "meters" }) > this.engagingCollection.maxVisibilityRange
 			) {
 				this.detectedCollections.delete(this.engagingCollection);
 				this.engagingCollection = null;
 			}
 		}
+
+		// Share detected locations
+		dispatcher.updateDetectedCollections(this.team, this.detectedCollections);
+
 		let closestCollection: AgentCollection<Unit> | undefined;
 		let closestCollectionDistance: number = Infinity;
 		this.detectedCollections.forEach(collection => {

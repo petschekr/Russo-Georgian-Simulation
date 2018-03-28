@@ -1,5 +1,6 @@
 import * as _turf from "@turf/turf";
 import { UnitType } from "./weapons";
+import { Unit } from "./units";
 import { AgentCollection } from "./collections";
 declare const turf: typeof _turf;
 declare const moment: any;
@@ -59,7 +60,7 @@ export class Utilities {
 
 // >"Team"
 export enum Team {
-	Russia, Georgia, SouthOssetia, None
+	Russia, Georgia, SouthOssetia
 }
 
 export interface HoverInfo {
@@ -79,7 +80,7 @@ export class Dispatcher {
 	}
 
 	public entities: Entity[];
-
+	
 	constructor(start: Date, entities: Entity[]) {
 		// Clone don't copy the start date object
 		this.time = new Date(start.valueOf());
@@ -165,6 +166,25 @@ export class Dispatcher {
 			}
 		}
 		return ids;
+	}
+
+	private detectedCollections = new Map<Team, Set<AgentCollection<Unit>>>();
+	public updateDetectedCollections(team: Team, detected: Set<AgentCollection<Unit>>): void {
+		let existingSet = this.detectedCollections.get(team);
+		if (existingSet) {
+			// Merge the two sets
+			detected = new Set(function*() {
+				yield* existingSet;
+				yield* detected;
+			}());
+		}
+		this.detectedCollections.set(team, detected);
+	}
+	public getDetectedCollections(team: Team): Set<AgentCollection<Unit>> {
+		if (!this.detectedCollections.has(team)) {
+			this.detectedCollections.set(team, new Set());
+		}
+		return this.detectedCollections.get(team)!;
 	}
 
 	public async tick(): Promise<void> {
