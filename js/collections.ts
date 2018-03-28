@@ -616,12 +616,54 @@ export class MountedInfantryBattalion extends AgentCollection<MountedInfantrySqu
 	}
 }
 
-export class TankBattalion extends AgentCollection<TankT55> {
+export class CobraBattalion extends AgentCollection<Cobra> {
 	public readonly type: UnitType;
 	public maxVisibilityRange: number;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `TankBattalion_${Team[team]}_${name}`;
+		let id = `CobraBattalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.HeavyArmor;
+		for (let i = 0; i < unitNumber; i++) {
+			this.units.push(new Cobra(location, this));
+		}
+	}
+}
+
+export class BTR80Battalion extends AgentCollection<BTR80> {
+	public readonly type: UnitType;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `BTR80Battalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.HeavyArmor;
+		for (let i = 0; i < unitNumber; i++) {
+			this.units.push(new BTR80(location, this));
+		}
+	}
+}
+
+export class BMP2Battalion extends AgentCollection<BMP2> {
+	public readonly type: UnitType;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `BMP2Battalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.HeavyArmor;
+		for (let i = 0; i < unitNumber; i++) {
+			this.units.push(new BMP2(location, this));
+		}
+	}
+}
+
+export class T55Battalion extends AgentCollection<TankT55> {
+	public readonly type: UnitType;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `T55Battalion_${Team[team]}_${name}`;
 		super(id, team, location, waypoints);
 		
 		this.type = UnitType.HeavyArmor;
@@ -633,6 +675,34 @@ export class TankBattalion extends AgentCollection<TankT55> {
 		}
 		else {
 			this.maxVisibilityRange = 0;
+		}
+	}
+}
+
+export class T72Battalion extends AgentCollection<TankT72> {
+	public readonly type: UnitType;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `T72Battalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.HeavyArmor;
+		for (let i = 0; i < unitNumber; i++) {
+			this.units.push(new TankT72(location, this));
+		}
+	}
+}
+
+export class ArtilleryBattalion extends AgentCollection<ArtilleryDANA> {
+	public readonly type: UnitType;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `ArtilleryBattalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.HeavyArmor;
+		for (let i = 0; i < unitNumber; i++) {
+			this.units.push(new ArtilleryDANA(location, this));
 		}
 	}
 }
