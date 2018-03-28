@@ -1,7 +1,7 @@
 import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD, Utilities } from "./common";
 import { Unit, TankT55, InfantrySquad, MountedInfantrySquad } from "./units";
 import { UnitType } from "./weapons";
-import { getDirections, terrainFeatures, TerrainReturn, TerrainType } from "./mapdata";
+import { getDirections, terrainAlongLine, terrainFeatures, TerrainReturn, TerrainType } from "./mapdata";
 import { map, dispatcher } from "./main";
 
 import * as _turf from "@turf/turf";
@@ -85,7 +85,8 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 	// Navigation occurs on the unit collection level and instructions get
 	// propogated downwards to the individual units
-	private nextPointTerrain: TerrainType | null = null;
+	private currentTerrain: TerrainReturn[] = [];
+	private currentGrade: number = 0;
 	private async calculateNavigation(): Promise<void> {
 		if (this.waypoints.length <= 0) {
 			return;
@@ -105,28 +106,20 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 		// let chunks = turf.lineChunk(intermediatePath, 1, { units: "kilometers" });
 		// let chunks2 = chunks.features[0];
+		this.currentTerrain = await terrainAlongLine(intermediatePath);
+		
 		let allCoords = turf.getCoords(intermediatePath);
 		let start = allCoords[0] as Vector2;
 		let end = allCoords[allCoords.length - 1] as Vector2;
 		let distance = turf.distance(start, end, { units: "meters" });
 
-		let [startTerrain, endTerrain] = await Promise.all([
-			terrainFeatures(start),
-			terrainFeatures(end)
-		]);
-		this.nextPointTerrain = endTerrain.terrain;
-		
 		// Rise / run
-		let elevation1 = startTerrain.elevation;
-		let elevation2 = endTerrain.elevation;
-		let grade = 0;
+		let elevation1 = this.currentTerrain[0].elevation;
+		let elevation2 = this.currentTerrain[this.currentTerrain.length - 1].elevation;
+		this.currentGrade = 0;
 		if (elevation1 !== null && elevation2 !== null) {
-			grade = Math.abs(elevation2 - elevation1) / distance;
-			console.log(`Calculated grade for computed route (${elevation2 - elevation1} / ${distance}):`, grade.toFixed(2));
-		}
-		for (let unit of this.units) {
-			// Pretends that the entire route is the same terrain as the end point
-			unit.setSpeedForTerrain(grade, endTerrain.terrain);
+			this.currentGrade = Math.abs(elevation2 - elevation1) / distance;
+			console.log(`Calculated grade for computed route (${elevation2 - elevation1} / ${distance}):`, this.currentGrade.toFixed(2));
 		}
 
 		this.navigationCalculated = true;
@@ -174,9 +167,20 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		// Tick through subunits
 		let finishedNavigation = 0;
 		let unitVisibilties: GeoFeature<_turf.helpers.Polygon>[] = [];
+		if (this.currentTerrain.length > 0) {
+			if (this.currentTerrain[1] && Utilities.fastDistance(this.location, this.currentTerrain[0].location) >= Utilities.fastDistance(this.location, this.currentTerrain[1].location)) {
+				// Point reached, move on
+				this.currentTerrain.shift();
+			}
+		}
 		for (let unit of this.units) {
-			if (this.navigating && unit.navigate(secondsElapsed)) {
-				finishedNavigation++;
+			if (this.navigating) {
+				if (this.currentTerrain.length > 0) {
+					unit.setSpeedForTerrain(this.currentGrade, this.currentTerrain[0].terrain);
+				}
+				if (unit.navigate(secondsElapsed)) {
+					finishedNavigation++;
+				}
 			}
 			//unitVisibilties.push(turf.circle(unit.location, unit.visibility.range, { units: "meters" }));
 			unit.tick(secondsElapsed);
@@ -522,7 +526,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 				color: this.color,
 				team: Team[this.team],
 				health: this.health,
-				terrain: this.nextPointTerrain ? this.nextPointTerrain.toString() : "N/A"
+				terrain: this.currentTerrain.length > 0 ? this.currentTerrain[0].terrain.toString() : "N/A"
 			});
 		});
 		map.on("mouseleave", this.sources.get("visibility")!.id, () => {

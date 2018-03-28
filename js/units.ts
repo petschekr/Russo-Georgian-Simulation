@@ -150,7 +150,16 @@ export abstract class Unit implements Entity {
 			speed = 0;
 		}
 		// TODO: actually use terrain somehow
-		
+		if (terrain.urban) {
+			speed *= this.movement.urban;
+		}
+		if (terrain.wood) {
+			speed *= this.movement.forest;
+		}
+		if (terrain.crop || terrain.grass || terrain.scrub) {
+			speed *= this.movement.steppe;
+		}
+
 		return speed;
 	}
 

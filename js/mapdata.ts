@@ -122,7 +122,7 @@ export class TerrainType {
 		return "N/A";
 	}
 }
-export type TerrainReturn = { terrain: TerrainType; elevation: number | null };
+export type TerrainReturn = { location: Vector2, terrain: TerrainType; elevation: number | null };
 export async function terrainFeatures(location: Vector2): Promise<TerrainReturn> {
 	return new Promise<TerrainReturn>((resolve, reject) => {
 		let url = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/${location[0]},${location[1]}.json?radius=0&access_token=${mapboxgl.accessToken}`;
@@ -166,6 +166,7 @@ export async function terrainFeatures(location: Vector2): Promise<TerrainReturn>
 			}
 
 			resolve({
+				location,
 				terrain,
 				elevation: elevation !== -Infinity ? elevation : null
 			});
@@ -178,7 +179,7 @@ export async function terrainFeatures(location: Vector2): Promise<TerrainReturn>
 }
 
 type LineString = _turf.helpers.Feature<_turf.LineString, _turf.helpers.Properties>;
-export async function terrainAlongLine(line: LineString, sample: number = 1000 /* meters */): Promise<TerrainReturn[]> { 
+export async function terrainAlongLine(line: LineString, sample: number = 500 /* meters */): Promise<TerrainReturn[]> { 
 	let length = turf.length(line, { units: "meters" });
 	let reducedPointCount = Math.ceil(length / sample) + 1;
 	let reducedPoints: Vector2[] = [];
