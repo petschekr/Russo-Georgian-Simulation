@@ -51,3 +51,7 @@ label[for="scenario"] {
 
     display: none;
 }
+
+#reset {
+    display: none;
+}

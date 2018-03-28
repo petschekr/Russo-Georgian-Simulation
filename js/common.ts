@@ -1,5 +1,6 @@
 import * as _turf from "@turf/turf";
 import { UnitType } from "./weapons";
+import { AgentCollection } from "./collections";
 declare const turf: typeof _turf;
 declare const moment: any;
 
@@ -75,7 +76,8 @@ export class Dispatcher {
 	public entities: Entity[];
 
 	constructor(start: Date, entities: Entity[]) {
-		this.time = start;
+		// Clone don't copy the start date object
+		this.time = new Date(start.valueOf());
 		this.entities = entities;
 
 		window.addEventListener("mousemove", e => {
@@ -148,6 +150,16 @@ export class Dispatcher {
 		this.hoverInfo.splice(index, 1);
 		this.updateInfoCompiled();
 		return true;
+	}
+
+	public get layerIDs(): string[] {
+		let ids: string[] = [];
+		for (let entity of this.entities) {
+			if (entity instanceof AgentCollection) {
+				ids = ids.concat(entity.mapboxIDs);
+			}
+		}
+		return ids;
 	}
 
 	public async tick(): Promise<void> {

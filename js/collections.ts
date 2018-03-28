@@ -389,6 +389,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		return this.eliminated;
 	}
 
+	public mapboxIDs: string[] = [];
 	private drawInit(): void {
 		// Add sources
 		type SourceGeoJSON = GeoFeature<_turf.helpers.Point>
@@ -506,6 +507,11 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		map.on("mouseleave", this.sources.get("visibility")!.id, () => {
 			dispatcher.removeInfo(this.id);
 		});
+
+		// Make available a list of IDs so they can be deleted if necessary
+		for (let source of this.sources.values()) {
+			this.mapboxIDs.push(source.id);
+		}
 	}
 
 	// public split(numberPerGroup: number[]): this[] {

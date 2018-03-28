@@ -131,36 +131,45 @@ map.on("load", () => start());
 
 export let dispatcher: Dispatcher;
 async function start() {
+	let isReset = true;
+	let currentUpdate: number | null = null;
 	const startDate = new Date("2008-08-08T00:00:00+04:00"); // August 8th, 2008 @ midnight
 	let units: Entity[];
 
 	const timeElement = document.getElementById("time")!;
-	timeElement.textContent = "Ready";
-	// const units = initializeUnits();
-	// const dispatcher = new Dispatcher(startDate, units);
-	// timeElement.textContent = dispatcher.formattedTime;
 
 	const scenarioSlider = document.getElementById("scenario") as HTMLInputElement;
 	const scenarioValue = document.getElementById("scenario-value") as HTMLSpanElement;
 	let scenarioPercentage: number = 0;
+	
+	function initialize() {
+		timeElement.textContent = "Initializing...";
+
+		if (dispatcher) {
+			for (let id of dispatcher.layerIDs) {
+				// Layer and source IDs are the same
+				map.removeLayer(id).removeSource(id);
+			}
+		}
+
+		units = initializeUnits(scenarioPercentage);
+		dispatcher = new Dispatcher(startDate, units);
+		timeElement.textContent = dispatcher.formattedTime;
+	}
 	scenarioSlider.addEventListener("input", () => {
 		scenarioPercentage = parseFloat(scenarioSlider.value);
 		scenarioValue.textContent = scenarioPercentage.toString();
+		initialize();
 	});
+	initialize();
 
 	const stopButton = document.getElementById("stop")!;
+	const resetButton = document.getElementById("reset")!;
 	let shouldStop = true;
-	let firstStart = true;
 	stopButton.addEventListener("click", () => {
 		shouldStop = !shouldStop;
 		if (!shouldStop) {
-			if (firstStart) {
-				firstStart = false;
-				stopButton.textContent = "Initializing...";
-				units = initializeUnits(scenarioPercentage);
-				dispatcher = new Dispatcher(startDate, units);
-				timeElement.textContent = dispatcher.formattedTime;
-			}
+			resetButton.style.display = "inline";
 			stopButton.textContent = "Stop";
 			scenarioSlider.disabled = true;
 			update();
@@ -169,6 +178,17 @@ async function start() {
 			stopButton.textContent = "Start";
 		}
 	});
+	resetButton.addEventListener("click", () => {
+		isReset = true;
+		shouldStop = true;
+		if (currentUpdate !== null) {
+			window.clearTimeout(currentUpdate);
+		}
+		stopButton.textContent = "Start";
+		resetButton.style.display = "none";
+		scenarioSlider.disabled = false;
+		initialize();
+	})
 
 	const tickDelayBox = document.getElementById("tick-delay") as HTMLInputElement;
 	let tickDelay = parseInt(tickDelayBox.value, 10);
@@ -181,10 +201,9 @@ async function start() {
 	async function update() {
 		await dispatcher.tick();
 		timeElement.textContent = dispatcher.formattedTime;
-		// console.timeEnd("Dispatcher tick");
 
 		if (!shouldStop) {
-			window.setTimeout(update, tickDelay);
+			currentUpdate = window.setTimeout(update, tickDelay);
 			//window.requestAnimationFrame(update);
 		}
 	}
