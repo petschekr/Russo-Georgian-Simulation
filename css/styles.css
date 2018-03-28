@@ -55,3 +55,11 @@ label[for="scenario"] {
 #reset {
     display: none;
 }
+
+#output {
+    width: 228px;
+    /* I can't be arsed to figure out the actual width so make sure it never gets hidden when overlapped */
+    z-index: 10000;
+    position: absolute;
+    bottom: 10px;
+}
