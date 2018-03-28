@@ -1,7 +1,7 @@
 // import * as geojson from "geojson";
 import { Vector2, Utilities, Team, Dispatcher, Entity } from "./common";
 import { InfantrySquad, TankT55 } from "./units";
-import { InfantryBattalion, TankBattalion } from "./collections";
+import { InfantryBattalion, TankBattalion, MountedInfantryBattalion } from "./collections";
 
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
@@ -23,7 +23,7 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 	if (DEBUGGING) {
 		// Return some fake debugging data that is easier to work with
 		return [
-			new InfantryBattalion([43.952436447143555, 42.20022901694891], 5, [
+			new MountedInfantryBattalion([43.952436447143555, 42.20022901694891], 5, [
 				{ location: [43.89261245727539, 42.21211802] },
 				{ location: [43.95647048950195, 42.22178015985047] },
 				{ location: [43.96831512451172, 42.2162023613838] },
@@ -182,6 +182,9 @@ async function start() {
 		}
 		else {
 			stopButton.textContent = "Start";
+			if (currentUpdate !== null) {
+				window.clearTimeout(currentUpdate);
+			}
 		}
 	});
 	resetButton.addEventListener("click", () => {

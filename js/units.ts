@@ -140,7 +140,7 @@ export abstract class Unit implements Entity {
 		}
 	}
 
-	public abstract setSpeedForGrade(grade: number): void;
+	public abstract setSpeedForTerrain(grade: number): void;
 
 	public fuzzLocation(MAX_DISTANCE: number = 50): void {
 		let point = turf.point(this.location);
@@ -201,7 +201,7 @@ export class TankT55 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
+	public setSpeedForTerrain(grade: number): void {
 		this.speed = this.maxSpeed * Math.exp(-4 * grade);
 		if (grade > this.maxClimbAbility) {
 			console.error(`Max grade exceeded. Speed will be 0. ${this.id}`);
@@ -222,7 +222,7 @@ export class InfantrySquad extends Unit {
 	public outOfActionDecay = 60 * 5;
 	public blocksOthers = false;
 
-	public readonly maxSpeed = 1.34; // 3 miles per hour
+	public maxSpeed = 1.34; // 3 miles per hour
 	public speed = this.maxSpeed;
 	public rotationSpeed = Infinity;
 	public maxClimbAbility = 1;
@@ -254,11 +254,48 @@ export class InfantrySquad extends Unit {
 	}
 
 	// Source for humans: http://mtntactical.com/research/walking-uphill-10-grade-cuts-speed-13not-12/
-	public setSpeedForGrade(grade: number): void {
+	public setSpeedForTerrain(grade: number): void {
 		this.speed = this.maxSpeed * Math.exp(-1.5 * grade);
 		if (grade > this.maxClimbAbility) {
 			console.error(`Max grade exceeded. Speed will be 0. ${this.id}`);
 			this.speed = 0;
+		}
+	}
+}
+
+export class MountedInfantrySquad extends InfantrySquad {
+	public readonly id: string;
+	private static creationCountSubclassed = 0;
+
+	public maxClimbAbility = 0.6;
+
+	public readonly maxWalkingSpeed = 1.34; // 3 miles per hour
+	public readonly maxDrivingSpeed = 17.8; // 40 miles per hour
+	public get maxSpeed(): number {
+		if (this.container.type === UnitType.Infantry) {
+			return this.maxWalkingSpeed;
+		}
+		else {
+			return this.maxDrivingSpeed;
+		}
+	}
+	public set maxSpeed(speed: number) { speed; }
+
+	private _speed: number = this.maxSpeed;
+	public get speed(): number { return this._speed; }
+	public set speed(speed: number) { speed; }
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super(location, container);
+		this.id = `MountedInfSquad(${this.memberCount})_${MountedInfantrySquad.creationCountSubclassed++}`;
+	}
+
+	public setSpeedForTerrain(grade: number): void {
+		let coefficient = this.container.type === UnitType.Infantry ? -1.5 : -4;
+		this._speed = this.maxSpeed * Math.exp(coefficient * grade);
+		if (grade > this.maxClimbAbility) {
+			console.error(`Max grade exceeded. Speed will be 0. ${this.id}`);
+			this._speed = 0;
 		}
 	}
 }

@@ -1,5 +1,5 @@
 import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD, Utilities } from "./common";
-import { Unit, TankT55, InfantrySquad } from "./units";
+import { Unit, TankT55, InfantrySquad, MountedInfantrySquad } from "./units";
 import { UnitType } from "./weapons";
 import { getDirections, terrainFeatures, TerrainReturn } from "./mapdata";
 import { map, dispatcher } from "./main";
@@ -124,7 +124,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			console.log(`Calculated grade for computed route (${elevation2 - elevation1} / ${distance}):`, grade.toFixed(2));
 		}
 		for (let unit of this.units) {
-			unit.setSpeedForGrade(grade);
+			unit.setSpeedForTerrain(grade);
 		}
 
 		this.navigationCalculated = true;
@@ -201,21 +201,21 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	private static areBadOdds(me: AgentCollection<Unit>, them: AgentCollection<Unit>): boolean {
-		return (me.type === UnitType.Infantry 
+		return ((me.type === UnitType.Infantry || me.type === UnitType.UnarmoredVehicle)
 				&& them.type === UnitType.HeavyArmor
 				&& me.units.length < them.units.length * 3)
 			|| (me.type === UnitType.HeavyArmor
-				&& them.type === UnitType.Infantry
+				&& (them.type === UnitType.Infantry || them.type === UnitType.UnarmoredVehicle)
 				&& me.units.length < them.units.length * 0.5)
 	}
 
 	private detectedCollections = new Set<AgentCollection<Unit>>();
-	private engagingBecauseDamaged = false;
+	protected engagingBecauseDamaged = false;
 	private _engagingCollection: AgentCollection<Unit> | null = null;
-	private get engagingCollection(): AgentCollection<Unit> | null {
+	protected get engagingCollection(): AgentCollection<Unit> | null {
 		return this._engagingCollection;
 	}
-	private set engagingCollection(collection: AgentCollection<Unit> | null) {
+	protected set engagingCollection(collection: AgentCollection<Unit> | null) {
 		this._engagingCollection = collection;
 		if (!collection) {
 			this.unitsFinishedNavigating = true;
@@ -315,7 +315,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		this.engagingCollection = closestCollection;
 	}
 
-	private retreating = false;
+	protected retreating = false;
 	private async combat(secondsElapsed: number): Promise<void> {
 		if (!this.engagingCollection) return;
 		if (this.engagingCollection.health <= 0) {
@@ -510,7 +510,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		});
 
 		// Attach event handlers for unit details
-		map.on("mousemove", this.sources.get("visibility")!.id, (e: any) => {
+		map.on("mousemove", this.sources.get("visibility")!.id, () => {
 			dispatcher.addInfo({
 				name: this.id,
 				color: this.color,
@@ -567,6 +567,34 @@ export class InfantryBattalion extends AgentCollection<InfantrySquad> {
 		this.type = UnitType.Infantry;
 		for (let i = 0; i < unitNumber; i++) {
 			this.units.push(new InfantrySquad(location, this));
+		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
+		}
+	}
+}
+
+export class MountedInfantryBattalion extends AgentCollection<MountedInfantrySquad> {
+	// Determine type based on if in combat
+	public get type(): UnitType {
+		if (this.engagingCollection && !this.retreating) {
+			return UnitType.Infantry;
+		}
+		else {
+			return UnitType.UnarmoredVehicle;
+		}
+	}
+	public maxVisibilityRange: number;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `MountedInfBattalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+
+		for (let i = 0; i < unitNumber; i++) {
+			this.units.push(new MountedInfantrySquad(location, this));
 		}
 		if (this.units.length > 0) {
 			this.maxVisibilityRange = this.units[0].visibility.range;
