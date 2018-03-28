@@ -68,6 +68,7 @@ export interface HoverInfo {
 	team: string;
 	color: string;
 	health: number;
+	terrain: string;
 }
 
 export class Dispatcher {
@@ -121,6 +122,8 @@ export class Dispatcher {
 			<strong style="font-size: 80%;">${info.name}</strong>
 			<br />
 			Side: <span style="color: ${info.color}">${info.team}</span> | Health: ${info.health.toFixed(1)}
+			<br />
+			Next terrain: ${info.terrain}
 			`;
 			if (i !== this.hoverInfo.length - 1) {
 				this.hoverInfoCompiled += "<hr />"

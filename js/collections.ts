@@ -1,7 +1,7 @@
 import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD, Utilities } from "./common";
 import { Unit, TankT55, InfantrySquad, MountedInfantrySquad } from "./units";
 import { UnitType } from "./weapons";
-import { getDirections, terrainFeatures, TerrainReturn } from "./mapdata";
+import { getDirections, terrainFeatures, TerrainReturn, TerrainType } from "./mapdata";
 import { map, dispatcher } from "./main";
 
 import * as _turf from "@turf/turf";
@@ -85,6 +85,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 	// Navigation occurs on the unit collection level and instructions get
 	// propogated downwards to the individual units
+	private nextPointTerrain: TerrainType | null = null;
 	private async calculateNavigation(): Promise<void> {
 		if (this.waypoints.length <= 0) {
 			return;
@@ -109,21 +110,23 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		let end = allCoords[allCoords.length - 1] as Vector2;
 		let distance = turf.distance(start, end, { units: "meters" });
 
-		let terrainDetails = await Promise.all([
+		let [startTerrain, endTerrain] = await Promise.all([
 			terrainFeatures(start),
 			terrainFeatures(end)
 		]);
+		this.nextPointTerrain = endTerrain.terrain;
 		
 		// Rise / run
-		let elevation1 = terrainDetails[0].elevation;
-		let elevation2 = terrainDetails[1].elevation;
+		let elevation1 = startTerrain.elevation;
+		let elevation2 = endTerrain.elevation;
 		let grade = 0;
 		if (elevation1 !== null && elevation2 !== null) {
 			grade = Math.abs(elevation2 - elevation1) / distance;
 			console.log(`Calculated grade for computed route (${elevation2 - elevation1} / ${distance}):`, grade.toFixed(2));
 		}
 		for (let unit of this.units) {
-			unit.setSpeedForTerrain(grade);
+			// Pretends that the entire route is the same terrain as the end point
+			unit.setSpeedForTerrain(grade, endTerrain.terrain);
 		}
 
 		this.navigationCalculated = true;
@@ -518,7 +521,8 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 				name: this.id,
 				color: this.color,
 				team: Team[this.team],
-				health: this.health
+				health: this.health,
+				terrain: this.nextPointTerrain ? this.nextPointTerrain.toString() : "N/A"
 			});
 		});
 		map.on("mouseleave", this.sources.get("visibility")!.id, () => {

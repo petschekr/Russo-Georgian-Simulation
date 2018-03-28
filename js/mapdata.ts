@@ -56,7 +56,7 @@ export async function getDirections(start: Vector2, end: Vector2, unitType: Unit
 }
 
 // https://www.mapbox.com/vector-tiles/mapbox-terrain/#landcover
-class TerrainType {
+export class TerrainType {
 	private state = {
 		urban: true, // Lack of a Mapbox description = Empty space in the landcover layer represents either water or bare earth, rock, sand, and built-up areas
 		wood: false, // The area is mostly wooded or forest-like
@@ -102,6 +102,29 @@ class TerrainType {
 	enableSnow() {
 		this.state.urban = false;
 		this.state.snow = true;
+	}
+
+	toString() {
+		let types: string[] = [];
+		if (this.state.urban) {
+			types.push("urban");
+		}
+		if (this.state.wood) {
+			types.push("wood");
+		}
+		if (this.state.scrub) {
+			types.push("scrub");
+		}
+		if (this.state.grass) {
+			types.push("grass");
+		}
+		if (this.state.crop) {
+			types.push("crop");
+		}
+		if (this.state.snow) {
+			types.push("snow");
+		}
+		return types.join(" | ");
 	}
 }
 export type TerrainReturn = { terrain: TerrainType; elevation: number | null };
