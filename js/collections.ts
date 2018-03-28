@@ -136,8 +136,10 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			this.eliminated = true;
 			this.waypoints = [];
 			// Hide collection
-			for (let {id} of this.sources.values()) {
-				map.setLayoutProperty(id, "visibility", "none");
+			for (let [type, {id}] of this.sources.entries()) {
+				if (type !== "location") {
+					map.setLayoutProperty(id, "visibility", "none");
+				}
 			}
 		}
 		if (this.eliminated) return;
