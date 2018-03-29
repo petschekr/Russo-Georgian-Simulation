@@ -1,13 +1,25 @@
 // import * as geojson from "geojson";
 import { Vector2, Utilities, Team, Dispatcher, Entity } from "./common";
 import { InfantrySquad, TankT55 } from "./units";
-import { InfantryBattalion, T72Battalion } from "./collections";
+import { 
+	InfantryBattalion,
+	T72Battalion,
+	T55Battalion,
+	CobraBattalion,
+	BMP2Battalion,
+	BTR80Battalion,
+	//ArtilleryBattalion,
+	MountedInfantryBattalion,
+	AgentCollection
+} from "./collections";
 
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
 
 const MAPBOX_TOKEN = "pk.eyJ1IjoicGV0c2NoZWtyIiwiYSI6ImNqZHY0YWExZDBlM3ozM2xidWMyZnRwMjkifQ.b65yhhfYo08ptlaRmSungw";
 mapboxgl.accessToken = MAPBOX_TOKEN;
+
+export const DEBUGGING = false;
 
 export const map = new mapboxgl.Map({
     container: "map",
@@ -17,7 +29,39 @@ export const map = new mapboxgl.Map({
 	bearingSnap: 20
 });
 
-function initializeUnits(): Entity[] {
+function initializeUnits(interdictPercentage: number): Entity[] {
+	if (DEBUGGING) {
+		// Return some fake debugging data that is easier to work with
+		return [
+			new MountedInfantryBattalion([43.952436447143555, 42.20022901694891], 5, [
+				{ location: [43.89261245727539, 42.21211802] },
+				{ location: [43.95647048950195, 42.22178015985047] },
+				{ location: [43.96831512451172, 42.2162023613838] },
+				{ location: [43.97471219301224, 42.23230274125556] },
+				{ location: [43.96300435066223, 42.22481516512234] },
+				{ location: [43.969130516052246, 42.20904664356124] },
+				{ location: [43.97483825683594, 42.203654487208524] }
+			], "41st Battalion", Team.Georgia),
+			new T72Battalion([43.957414627075195, 42.20835923876126], 5, [
+				{ location: [43.96301507949829, 42.2256493687579] },
+				{ location: [43.97178053855896, 42.228692132394976] },
+				{ location: [43.973894119262695, 42.2248310548184] },
+				{ location: [43.96911978721619, 42.21902310452333] }
+			], "TestTank Battalion", Team.Georgia),
+			new T72Battalion([44.09646, 42.62257], 5, [
+				{ location: [44.117457, 42.563961] },
+				{ location: [44.059123992919915, 42.452214646756104] },
+				{ location: [43.90325546264648, 42.349663931625585] },
+				{ location: [43.964388370513916, 42.246151422934474] },
+				{ location: [43.95110607147217, 42.237064933651965] },
+				{ location: [43.95110607147217, 42.237064933651965] },
+				{ location: [43.92630100250244, 42.23296605397935] },
+				{ location: [43.92630100250244, 42.23296605397935] },
+				{ location: [43.95838022232056, 42.22184372166598] }
+			], "135 Motorized Rifle Regiment", Team.Russia)
+		];
+	}
+
 	/**Unit/collection types: InfantryBattalion, InfantryBattalion, ArtilleryBattalion, T72Battalion**/
 	return [
 		/**GEORGIA**/
@@ -46,8 +90,8 @@ function initializeUnits(): Entity[] {
 		], "4th BMPs", Team.Georgia),
 		new T72Battalion([43.952436447143555, 42.20022901694891], 20, [
 		], "44th Armored Battalion", Team.Georgia),
-		new ArtilleryBattalion([43.952436447143555, 42.20022901694891], 18, [
-		], "45th Artillery Battalion", Team.Georgia),
+		// new ArtilleryBattalion([43.952436447143555, 42.20022901694891], 18, [
+		// ], "45th Artillery Battalion", Team.Georgia),
 		
 		/**East**/
 		new InfantryBattalion([44.03217315673828, 42.21046513733562], 16, [
@@ -74,10 +118,10 @@ function initializeUnits(): Entity[] {
 			{ location: [44.03114318847656, 42.24090937727564] },
 			{ location: [44.06041145324707, 42.27502251971017] }
 		], "34th Armored Battalion", Team.Georgia),
-		new ArtilleryBattalion([44.03217315673828, 42.21046513733562], 18, [
-			{ location: [44.03114318847656, 42.24090937727564] },
-			{ location: [44.06041145324707, 42.27502251971017] }
-		], "35th Artillery Battalion", Team.Georgia),
+		// new ArtilleryBattalion([44.03217315673828, 42.21046513733562], 18, [
+		// 	{ location: [44.03114318847656, 42.24090937727564] },
+		// 	{ location: [44.06041145324707, 42.27502251971017] }
+		// ], "35th Artillery Battalion", Team.Georgia),
 
 		/**Center**/
 		new InfantryBattalion([44.03672218322754, 42.177080370547195], 72, [
@@ -104,8 +148,8 @@ function initializeUnits(): Entity[] {
 		], "53rd Infantry Battalion", Team.Georgia),
 		new InfantryBattalion([43.99526596069336, 42.196095951813454], 16, [
 		], "11th Infantry Battalion", Team.Georgia),
-		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 18, [
-		], "15th Artillery Battalion", Team.Georgia),
+		// new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 18, [
+		// ], "15th Artillery Battalion", Team.Georgia),
 		
 		/**Far West**/
 		new InfantryBattalion([43.597354888916016, 42.5045977676146], 16, [
@@ -115,12 +159,12 @@ function initializeUnits(): Entity[] {
 		], "Independent Mountain Rifle Battalion", Team.Georgia),		
 
 		/**Fire support in Gori**/
-		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 30, [
-		], "Self-Propelled Artillery Battalion", Team.Georgia),
-		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 20, [
-		], "MRL Battalion 1", Team.Georgia),
-		new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 20, [
-		], "MRL Battalion 2", Team.Georgia),
+		// new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 30, [
+		// ], "Self-Propelled Artillery Battalion", Team.Georgia),
+		// new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 20, [
+		// ], "MRL Battalion 1", Team.Georgia),
+		// new ArtilleryBattalion([43.99526596069336, 42.196095951813454], 20, [
+		// ], "MRL Battalion 2", Team.Georgia),
 		
 		/**Reinforcements from Abkhazia**/
 		new InfantryBattalion([43.952436447143555, 42.20022901694891], 16, [
@@ -140,8 +184,8 @@ function initializeUnits(): Entity[] {
 		], "2nd BMPs", Team.Georgia),
 		new T72Battalion([43.952436447143555, 42.20022901694891], 20, [
 		], "24th Armored Battalion", Team.Georgia),
-		new ArtilleryBattalion([43.952436447143555, 42.20022901694891], 18, [
-		], "25th Artillery Battalion", Team.Georgia),
+		// new ArtilleryBattalion([43.952436447143555, 42.20022901694891], 18, [
+		// ], "25th Artillery Battalion", Team.Georgia),
 		
 		/**RUSSIA**/
 		
@@ -279,27 +323,27 @@ function initializeUnits(): Entity[] {
 			{ location: [43.961421, 42.257837] }
 		], "693rd Tank Battalion", Team.Russia),
 		
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "292nd Self-Propelled Artillery Battalion 1", Team.Russia),
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "292nd Self-Propelled Artillery Battalion 2", Team.Russia),
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "292nd Self-Propelled Artillery Battalion 3", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "292nd Self-Propelled Artillery Battalion 1", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "292nd Self-Propelled Artillery Battalion 2", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "292nd Self-Propelled Artillery Battalion 3", Team.Russia),
 		
 		new T72Battalion([44.095118, 42.619849], 30, [
 			{ location: [44.116193, 42.562299] },
@@ -348,27 +392,27 @@ function initializeUnits(): Entity[] {
 			{ location: [43.935778, 42.317001] }
 		], "71st Tank Battalion", Team.Russia),
 		
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "50th Self-Propelled Artillery Battalion 1", Team.Russia),
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "50th Self-Propelled Artillery Battalion 2", Team.Russia),
-		new ArtilleryBattalion([44.095118, 42.619849], 18, [
-			{ location: [44.116193, 42.562299] },
-			{ location: [43.889027, 42.216375] },
-			{ location: [43.934431, 42.225161] },
-			{ location: [43.958110, 42.221842] },
-			{ location: [43.938932, 42.225042] }
-		], "50th Self-Propelled Artillery Battalion 3", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "50th Self-Propelled Artillery Battalion 1", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "50th Self-Propelled Artillery Battalion 2", Team.Russia),
+		// new ArtilleryBattalion([44.095118, 42.619849], 18, [
+		// 	{ location: [44.116193, 42.562299] },
+		// 	{ location: [43.889027, 42.216375] },
+		// 	{ location: [43.934431, 42.225161] },
+		// 	{ location: [43.958110, 42.221842] },
+		// 	{ location: [43.938932, 42.225042] }
+		// ], "50th Self-Propelled Artillery Battalion 3", Team.Russia),
 		
 		/**Other**/
 		new InfantryBattalion([44.020066, 42.653092], 4, [
@@ -417,26 +461,76 @@ function initializeUnits(): Entity[] {
 
 map.on("load", () => start());
 
+export let dispatcher: Dispatcher;
 async function start() {
+	let isReset = true;
+	let currentUpdate: number | null = null;
 	const startDate = new Date("2008-08-08T00:00:00+04:00"); // August 8th, 2008 @ midnight
-	const units = initializeUnits();
-	const dispatcher = new Dispatcher(startDate, units);
-	
+	let units: Entity[];
+
 	const timeElement = document.getElementById("time")!;
-	timeElement.textContent = dispatcher.formattedTime;
+
+	const scenarioSlider = document.getElementById("scenario") as HTMLInputElement;
+	const scenarioValue = document.getElementById("scenario-value") as HTMLSpanElement;
+	let scenarioPercentage: number = 0;
+	
+	function initialize() {
+		timeElement.textContent = "Initializing...";
+
+		if (dispatcher) {
+			for (let id of dispatcher.layerIDs) {
+				// Layer and source IDs are the same
+				map.removeLayer(id).removeSource(id);
+			}
+		}
+
+		units = initializeUnits(scenarioPercentage);
+		let unitCount = units.reduce((prev, collection) => {
+			if (collection instanceof AgentCollection) {
+				return prev + collection.units.length;
+			}
+			return prev;
+		}, 0);
+		console.info(`Initialized with ${units.length.toLocaleString()} collections and ${unitCount.toLocaleString()} units`);
+		dispatcher = new Dispatcher(startDate, units);
+		timeElement.textContent = dispatcher.formattedTime;
+	}
+	scenarioSlider.addEventListener("input", () => {
+		scenarioPercentage = parseFloat(scenarioSlider.value);
+		scenarioValue.textContent = scenarioPercentage.toString();
+		initialize();
+	});
+	initialize();
 
 	const stopButton = document.getElementById("stop")!;
+	const resetButton = document.getElementById("reset")!;
 	let shouldStop = true;
 	stopButton.addEventListener("click", () => {
 		shouldStop = !shouldStop;
 		if (!shouldStop) {
+			resetButton.style.display = "inline";
 			stopButton.textContent = "Stop";
+			scenarioSlider.disabled = true;
 			update();
 		}
 		else {
 			stopButton.textContent = "Start";
+			if (currentUpdate !== null) {
+				window.clearTimeout(currentUpdate);
+			}
 		}
 	});
+	resetButton.addEventListener("click", () => {
+		isReset = true;
+		shouldStop = true;
+		if (currentUpdate !== null) {
+			window.clearTimeout(currentUpdate);
+		}
+		stopButton.textContent = "Start";
+		resetButton.style.display = "none";
+		scenarioSlider.disabled = false;
+		initialize();
+	})
 
 	const tickDelayBox = document.getElementById("tick-delay") as HTMLInputElement;
 	let tickDelay = parseInt(tickDelayBox.value, 10);
@@ -449,10 +543,9 @@ async function start() {
 	async function update() {
 		await dispatcher.tick();
 		timeElement.textContent = dispatcher.formattedTime;
-		// console.timeEnd("Dispatcher tick");
 
 		if (!shouldStop) {
-			window.setTimeout(update, tickDelay);
+			currentUpdate = window.setTimeout(update, tickDelay);
 			//window.requestAnimationFrame(update);
 		}
 	}

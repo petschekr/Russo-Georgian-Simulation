@@ -1,18 +1,21 @@
 import * as _turf from "@turf/turf";
 import { UnitType } from "./weapons";
+import { Unit } from "./units";
+import { AgentCollection } from "./collections";
 declare const turf: typeof _turf;
 declare const moment: any;
 
 export type Vector2 = [number, number]; // Note! Longitude, Latitude (x, y)
 export interface Waypoint {
-	location: Vector2
+	location: Vector2,
+	temporary?: boolean
 }
 
 export interface Entity {
     readonly id: string;
 	location: Vector2;
 	
-	tick(time: number, secondsElapsed: number): Promise<void>; // Do something every time iteration
+	tick(secondsElapsed: number): Promise<void>; // Do something every time iteration
 }
 
 export const NAVIGATION_THRESHOLD = 10; // 10 meters
@@ -31,7 +34,7 @@ export class Utilities {
 		return radians * (180 / Math.PI);
 	}
 	static pointToVector(point: _turf.Feature<_turf.Point, _turf.Properties>): Vector2 {
-		return turf.coordAll(point)[0] as Vector2;
+		return turf.getCoord(point) as Vector2;
 	}
 	static isEnemy(me: Team, them: Team): boolean {
 		if (me === Team.Georgia && them === Team.Russia) {
@@ -48,11 +51,24 @@ export class Utilities {
 		}
 		return false;
 	}
+	static fastDistance(location1: Vector2, location2: Vector2): number { // Returns in meters
+		let dx = location1[0] - location2[0];
+		let dy = location1[1] - location2[1];
+		return turf.radiansToLength(turf.degreesToRadians(Math.sqrt(dx ** 2 + dy ** 2))) * 1000;
+	}
 }
 
 // >"Team"
 export enum Team {
-	Russia, Georgia, SouthOssetia, None
+	Russia, Georgia, SouthOssetia
+}
+
+export interface HoverInfo {
+	name: string;
+	team: string;
+	color: string;
+	health: number;
+	terrain: string;
 }
 
 export class Dispatcher {
@@ -65,10 +81,18 @@ export class Dispatcher {
 	}
 
 	public entities: Entity[];
-
+	
 	constructor(start: Date, entities: Entity[]) {
-		this.time = start;
+		// Clone don't copy the start date object
+		this.time = new Date(start.valueOf());
 		this.entities = entities;
+
+		window.addEventListener("mousemove", e => {
+			if (this.hoverInfo.length > 0) {
+				this.hoverInfoBox.style.top = `${e.pageY + 15}px`;
+				this.hoverInfoBox.style.left = `${e.pageX + 15}px`;
+			}
+		});
 	}
 
 	public addEntities(entities: Entity | Entity[]): void {
@@ -82,11 +106,95 @@ export class Dispatcher {
 		return this.entities.splice(removeIndex, 1)[0];
 	}
 
+	private hoverInfo: HoverInfo[] = [];
+	private hoverInfoBox = document.getElementById("hover-info")!;
+	private hoverInfoCompiled: string = "";
+	private updateInfoCompiled(): void {
+		this.hoverInfoCompiled = "";
+
+		if (this.hoverInfo.length === 0) {
+			this.hoverInfoBox.style.display = "none";
+			return;
+		}
+		
+		for (let [i, info] of this.hoverInfo.entries()) {
+			this.hoverInfoCompiled += `
+			<strong style="font-size: 80%;">${info.name}</strong>
+			<br />
+			Side: <span style="color: ${info.color}">${info.team}</span> | Health: ${info.health.toFixed(1)}
+			<br />
+			Next terrain: ${info.terrain}
+			`;
+			if (i !== this.hoverInfo.length - 1) {
+				this.hoverInfoCompiled += "<hr />"
+			}
+		}
+		this.hoverInfoBox.innerHTML = this.hoverInfoCompiled;
+		this.hoverInfoBox.style.display = "block";
+	}
+	public addInfo(info: HoverInfo): void {
+		if (info.color.toLowerCase() === "#ffffff") {
+			info.color = "#000000"; // Text will be unreadable otherwise
+		}
+		let existingIndex = this.hoverInfo.findIndex(existingInfo => existingInfo.name === info.name);
+		if (existingIndex === -1) {
+			this.hoverInfo.push(info);
+			// Sort alphabetically
+			this.hoverInfo = this.hoverInfo.sort((a, b) => {
+				if (a.name < b.name) return -1;
+				if (a.name > b.name) return 1;
+				return 0;
+			});
+		}
+		else {
+			this.hoverInfo[existingIndex] = info;
+		}
+		this.updateInfoCompiled();
+	}
+	public removeInfo(name: string): boolean {
+		let index = this.hoverInfo.findIndex(info => info.name === name);
+		if (index === -1) {
+			return false;
+		}
+		this.hoverInfo.splice(index, 1);
+		this.updateInfoCompiled();
+		return true;
+	}
+
+	public get layerIDs(): string[] {
+		let ids: string[] = [];
+		for (let entity of this.entities) {
+			if (entity instanceof AgentCollection) {
+				ids = ids.concat(entity.mapboxIDs);
+			}
+		}
+		return ids;
+	}
+
+	private detectedCollections = new Map<Team, Set<AgentCollection<Unit>>>();
+	public updateDetectedCollections(team: Team, detected: Set<AgentCollection<Unit>>): void {
+		let existingSet = this.detectedCollections.get(team);
+		if (existingSet) {
+			// Merge the two sets
+			detected = new Set(function*() {
+				yield* existingSet;
+				yield* detected;
+			}());
+		}
+		this.detectedCollections.set(team, detected);
+	}
+	public getDetectedCollections(team: Team): Set<AgentCollection<Unit>> {
+		if (!this.detectedCollections.has(team)) {
+			this.detectedCollections.set(team, new Set());
+		}
+		return this.detectedCollections.get(team)!;
+	}
+
 	public async tick(): Promise<void> {
 		this.time.setSeconds(this.time.getSeconds() + this.secondsPerTick);
 
 		for (let entity of this.entities) {
-			await entity.tick(this.time.valueOf() / 1000, this.secondsPerTick);
+			await entity.tick(this.secondsPerTick);
 		}
 	}
 }

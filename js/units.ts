@@ -1,6 +1,7 @@
 import { Vector2, Waypoint, Entity, Utilities, NAVIGATION_THRESHOLD } from "./common";
 import { AgentCollection } from "./collections";
 import { Weapon, Weapons, UnitType } from "./weapons";
+import { TerrainType } from "./mapdata";
 
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
@@ -22,6 +23,7 @@ export abstract class Unit implements Entity {
 	public abstract outOfActionDecay: number // In seconds
 	public abstract blocksOthers: boolean;
 
+	protected abstract maxSpeed: number;
 	public abstract speed: number; // In meters / second on improved surface like a road
 	public abstract rotationSpeed: number; // In radians / second
 	public abstract maxClimbAbility: number; // Slope (meters/meter)
@@ -39,7 +41,6 @@ export abstract class Unit implements Entity {
 	public abstract health: number; // Health points
 
 	private path: _turf.helpers.Feature<_turf.helpers.LineString, _turf.helpers.Properties> = turf.lineString([[0, 0], [0, 0]]);
-	private navigationBegin: number = 0;
 	private destination: Waypoint = { location: [0, 0] };
 	private destinationArrived = true;
 	public get traveling() { return !this.destinationArrived }
@@ -52,13 +53,12 @@ export abstract class Unit implements Entity {
 		return `lat: ${this.location[1]}, long: ${this.location[0]}`
 	}
 
-	public updatePath(time: number, navPoints: Vector2[], destination: Waypoint): void {
-		this.navigationBegin = time;
+	public updatePath(navPoints: Vector2[], destination: Waypoint): void {
 		this.destination = destination;
 		this.destinationArrived = false;
 		this.path = turf.lineString([this.location, ...navPoints]);
 	}
-	public navigate(time: number): boolean {
+	public navigate(secondsElapsed: number): boolean {
 		if (this.destinationArrived) {
 			return true;
 		}
@@ -66,10 +66,34 @@ export abstract class Unit implements Entity {
 		if (this.isEngaging) {
 			effectiveSpeed *= 0.2;
 		}
-		// Move to next navpoint (intermedite routed points to next waypoint contained in collection)
-		let secondsNavigating = time - this.navigationBegin;
-		let newLocation = turf.along(this.path, effectiveSpeed * secondsNavigating, { units: "meters" });
-		this.location = turf.coordAll(newLocation)[0] as Vector2;
+		// Move to next navpoint (intermediate routed points to next waypoint contained in collection)
+		let newLocation = turf.along(this.path, effectiveSpeed * secondsElapsed, { units: "meters" });
+		this.location = Utilities.pointToVector(newLocation);
+		// Consume path as unit moves along it
+		
+		// let pathPoints = turf.coordAll(this.path);
+		// this.path = turf.lineSlice(newLocation, pathPoints[pathPoints.length - 1], this.path);
+		
+		// turf.lineSlice() is **insanely** slow so this is a good approximation for LineStrings with lots of points
+		const getCoord = (i: number): Vector2 => {
+			return this.path.geometry!.coordinates[i] as Vector2;
+		};
+
+		for (let i = 0; i < this.path.geometry!.coordinates.length - 1; i++) {
+			// Determine if between two points
+			let distanceDirect = Utilities.fastDistance(getCoord(0), getCoord(1));
+			let distanceViaCurrentLocation = Utilities.fastDistance(this.location, getCoord(0)) + Utilities.fastDistance(this.location, getCoord(1));
+			if (Math.abs(distanceDirect - distanceViaCurrentLocation) > 1) { // Less accurate than within a meter
+				this.path.geometry!.coordinates.shift();
+				i--; // Compensate for shifting
+			}
+			else {
+				// Shorten this segment by replacing vertex behind location with location
+				this.path.geometry!.coordinates[0] = this.location;
+				break;
+			}
+		}
+		//this.path.geometry!.coordinates.unshift(this.location);
 
 		if (turf.distance(this.location, this.destination.location, { units: "meters" }) < NAVIGATION_THRESHOLD) {
 			// Destination arrived
@@ -118,7 +142,26 @@ export abstract class Unit implements Entity {
 		}
 	}
 
-	public abstract setSpeedForGrade(grade: number): void;
+	public abstract setSpeedForTerrain(grade: number, terrain: TerrainType): void;
+	protected speedForTerrain(grade: number, gradeCoefficient: number, terrain: TerrainType): number {
+		let speed = this.maxSpeed * Math.exp(gradeCoefficient * grade);
+		if (grade > this.maxClimbAbility) {
+			console.error(`Max grade exceeded. Speed will be 0. ${this.id}`);
+			speed = 0;
+		}
+		// TODO: actually use terrain somehow
+		if (terrain.urban) {
+			speed *= this.movement.urban;
+		}
+		if (terrain.wood) {
+			speed *= this.movement.forest;
+		}
+		if (terrain.crop || terrain.grass || terrain.scrub) {
+			speed *= this.movement.steppe;
+		}
+
+		return speed;
+	}
 
 	public fuzzLocation(MAX_DISTANCE: number = 50): void {
 		let point = turf.point(this.location);
@@ -126,7 +169,7 @@ export abstract class Unit implements Entity {
 		let bearing = Utilities.randomInt(-180, 180);
 
 		let fuzzedLocation = turf.destination(point, distance, bearing, { units: "meters" });
-		this.location = turf.coordAll(fuzzedLocation)[0] as Vector2;
+		this.location = turf.getCoord(fuzzedLocation) as Vector2;
 	}
 }
 
@@ -179,11 +222,8 @@ export class TankT55 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-4 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
-		}
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
 
@@ -236,11 +276,8 @@ export class TankT72 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-4 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
-		}
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
 
@@ -293,11 +330,8 @@ export class ArtilleryDANA extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-4 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
-		}
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
 
@@ -350,11 +384,8 @@ export class BTR80 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-4 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
-		}
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
 
@@ -407,11 +438,8 @@ export class BMP2 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-4 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
-		}
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
 
@@ -459,11 +487,8 @@ export class Cobra extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-4 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
-		}
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
 
@@ -479,7 +504,7 @@ export class InfantrySquad extends Unit {
 	public outOfActionDecay = 60 * 5;
 	public blocksOthers = false;
 
-	public readonly maxSpeed = 1.34; // 3 miles per hour
+	public maxSpeed = 1.34; // 3 miles per hour
 	public speed = this.maxSpeed;
 	public rotationSpeed = Infinity;
 	public maxClimbAbility = 1;
@@ -511,10 +536,40 @@ export class InfantrySquad extends Unit {
 	}
 
 	// Source for humans: http://mtntactical.com/research/walking-uphill-10-grade-cuts-speed-13not-12/
-	public setSpeedForGrade(grade: number): void {
-		this.speed = this.maxSpeed * Math.exp(-1.5 * grade);
-		if (grade > this.maxClimbAbility) {
-			this.speed = 0;
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -1.5, terrain);
+	}
+}
+
+export class MountedInfantrySquad extends InfantrySquad {
+	public readonly id: string;
+	private static creationCountSubclassed = 0;
+
+	public maxClimbAbility = 0.6;
+
+	public readonly maxWalkingSpeed = 1.34; // 3 miles per hour
+	public readonly maxDrivingSpeed = 17.8; // 40 miles per hour
+	public get maxSpeed(): number {
+		if (this.container.type === UnitType.Infantry) {
+			return this.maxWalkingSpeed;
 		}
+		else {
+			return this.maxDrivingSpeed;
+		}
+	}
+	public set maxSpeed(speed: number) { speed; }
+
+	private _speed: number = this.maxSpeed;
+	public get speed(): number { return this._speed; }
+	public set speed(speed: number) { speed; }
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super(location, container);
+		this.id = `MountedInfSquad(${this.memberCount})_${MountedInfantrySquad.creationCountSubclassed++}`;
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		let coefficient = this.container.type === UnitType.Infantry ? -1.5 : -4;
+		this._speed = this.speedForTerrain(grade, coefficient, terrain);
 	}
 }

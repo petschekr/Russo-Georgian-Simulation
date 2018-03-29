@@ -29,3 +29,37 @@ html, body {
 #tick-delay {
     width: 45px;
 }
+
+#scenario {
+    width: 100%;
+}
+label[for="scenario"] {
+    font-size: 85%;
+}
+
+#hover-info {
+    position: absolute;
+    top: 0; left: 0;
+    width: auto;
+    height: auto;
+    background-color: white;
+    border: 1px solid #111;
+    border-radius: 2px;
+    z-index: 10000;
+    text-align: center;
+    padding: 5px;
+
+    display: none;
+}
+
+#reset {
+    display: none;
+}
+
+#output {
+    width: 228px;
+    /* I can't be arsed to figure out the actual width so make sure it never gets hidden when overlapped */
+    z-index: 10000;
+    position: absolute;
+    bottom: 10px;
+}
