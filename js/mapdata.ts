@@ -9,7 +9,7 @@ export enum Mode {
 	Walking
 }
 
-function directionsUrlFormatter(start: Vector2, end: Vector2, type: Mode = Mode.Driving, full: boolean = true): string {
+function directionsUrlFormatter(start: Vector2, end: Vector2, type: Mode = Mode.Driving, full: boolean = false): string {
 	let coordinates = `${start[0]},${start[1]};${end[0]},${end[1]}`;
 	let mode = type === Mode.Walking ? "walking" : "driving";
 	let overview = full ? "full" : "simplified";
@@ -193,7 +193,7 @@ export async function terrainFeatures(location: Vector2): Promise<TerrainReturn>
 }
 
 type LineString = _turf.helpers.Feature<_turf.LineString, _turf.helpers.Properties>;
-export async function terrainAlongLine(line: LineString, sample: number = 1000 /* meters */): Promise<TerrainReturn[]> { 
+export async function terrainAlongLine(line: LineString, sample: number = 7000 /* meters */): Promise<TerrainReturn[]> { 
 	let length = turf.length(line, { units: "meters" });
 	let reducedPointCount = Math.ceil(length / sample) + 1;
 	let reducedPoints: Vector2[] = [];
