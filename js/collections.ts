@@ -9,6 +9,9 @@ declare const turf: typeof _turf;
 
 type GeoFeature<T> = _turf.helpers.Feature<T, _turf.helpers.Properties>;
 
+// Speeds things up at the cost of a slightly less accurate simulation
+const SINGLE_UNIT_MODE = true;
+
 // Groups of infantry, tanks, etc.
 export abstract class AgentCollection<T extends Unit> implements Entity {
 	private static instances: AgentCollection<Unit>[] = [];
@@ -29,7 +32,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	private color: string;
 
 	private visibilityArea: GeoFeature<_turf.helpers.Polygon | _turf.helpers.MultiPolygon> = turf.polygon([[[0, 0], [0, 0], [0, 0], [0, 0]]]);
-	public abstract maxVisibilityRange: number = 0;
+	public maxVisibilityRange: number = 0;
 
 	// Get centroid location average of all included units
 	get location(): Vector2 {
@@ -83,6 +86,25 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		this.drawInit();
 	}
 
+	protected setUp(unit: new(location: Vector2, container: AgentCollection<Unit>) => T, unitNumber: number, location: Vector2) {
+		if (!SINGLE_UNIT_MODE) {
+			for (let i = 0; i < unitNumber; i++) {
+				this.units.push(new unit(location, this));
+			}
+			if (this.units.length > 0) {
+				this.maxVisibilityRange = this.units[0].visibility.range;
+			}
+			else {
+				this.maxVisibilityRange = 0;
+			}
+		}
+		else {
+			this.units = [new unit(location, this)];
+			this.units[0].enableSingleUnitMode(unitNumber);
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+	}
+
 	// Navigation occurs on the unit collection level and instructions get
 	// propogated downwards to the individual units
 	private currentTerrain: TerrainReturn[] = [];
@@ -119,6 +141,10 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		this.currentGrade = 0;
 		if (elevation1 !== null && elevation2 !== null) {
 			this.currentGrade = Math.abs(elevation2 - elevation1) / distance;
+			// 0 / 0 when duplicate waypoints exist
+			if (isNaN(this.currentGrade)) {
+				this.currentGrade = 0;
+			}
 			console.log(`Calculated grade for computed route (${elevation2 - elevation1} / ${distance}):`, this.currentGrade.toFixed(2));
 		}
 
@@ -203,7 +229,6 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			this.sources.get("waypoints")!.source.setData(turf.lineString([this.location, ...this.waypoints.map(waypoint => waypoint.location)]));
 		}
 		this.sources.get("visibility")!.source.setData(this.visibilityArea);
-		map.setPaintProperty(this.sources.get("units")!.id, "circle-opacity", this.health / 100);
 	}
 
 	private static areBadOdds(me: AgentCollection<Unit>, them: AgentCollection<Unit>): boolean {
@@ -569,22 +594,14 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 export class InfantryBattalion extends AgentCollection<InfantrySquad> {
 	public readonly type: UnitType;
-	public maxVisibilityRange: number;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let id = `InfantryBattalion_${Team[team]}_${name}`;
 		super(id, team, location, waypoints);
 
 		this.type = UnitType.Infantry;
-		for (let i = 0; i < unitNumber; i++) {
-			this.units.push(new InfantrySquad(location, this));
-		}
-		if (this.units.length > 0) {
-			this.maxVisibilityRange = this.units[0].visibility.range;
-		}
-		else {
-			this.maxVisibilityRange = 0;
-		}
+
+		this.setUp(InfantrySquad, unitNumber, location);
 	}
 }
 
@@ -598,41 +615,24 @@ export class MountedInfantryBattalion extends AgentCollection<MountedInfantrySqu
 			return UnitType.UnarmoredVehicle;
 		}
 	}
-	public maxVisibilityRange: number;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let id = `MountedInfBattalion_${Team[team]}_${name}`;
 		super(id, team, location, waypoints);
 
-		for (let i = 0; i < unitNumber; i++) {
-			this.units.push(new MountedInfantrySquad(location, this));
-		}
-		if (this.units.length > 0) {
-			this.maxVisibilityRange = this.units[0].visibility.range;
-		}
-		else {
-			this.maxVisibilityRange = 0;
-		}
+		this.setUp(MountedInfantrySquad, unitNumber, location);
 	}
 }
 
 export class TankBattalion extends AgentCollection<TankT55> {
 	public readonly type: UnitType;
-	public maxVisibilityRange: number;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
 		let id = `TankBattalion_${Team[team]}_${name}`;
 		super(id, team, location, waypoints);
 		
 		this.type = UnitType.HeavyArmor;
-		for (let i = 0; i < unitNumber; i++) {
-			this.units.push(new TankT55(location, this));
-		}
-		if (this.units.length > 0) {
-			this.maxVisibilityRange = this.units[0].visibility.range;
-		}
-		else {
-			this.maxVisibilityRange = 0;
-		}
+		
+		this.setUp(TankT55, unitNumber, location);
 	}
 }

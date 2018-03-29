@@ -39,6 +39,7 @@ export abstract class Unit implements Entity {
 	
 	public abstract weapons: WeaponAmmunitionPair[];
 	public abstract health: number; // Health points
+	public abstract maxHealth: number;
 
 	private path: _turf.helpers.Feature<_turf.helpers.LineString, _turf.helpers.Properties> = turf.lineString([[0, 0], [0, 0]]);
 	private destination: Waypoint = { location: [0, 0] };
@@ -46,7 +47,7 @@ export abstract class Unit implements Entity {
 	public get traveling() { return !this.destinationArrived }
 
 	constructor() {
-		
+
 	}
 
 	public debugString(): string {
@@ -62,7 +63,7 @@ export abstract class Unit implements Entity {
 		if (this.destinationArrived) {
 			return true;
 		}
-		let effectiveSpeed = this.speed * (this.health / 100);
+		let effectiveSpeed = this.speed * (this.health / this.maxHealth);
 		if (this.isEngaging) {
 			effectiveSpeed *= 0.2;
 		}
@@ -130,7 +131,7 @@ export abstract class Unit implements Entity {
 		if (!bestWeapon) return;
 
 		let damage = 0;
-		for (let shot = 0; shot < Math.min(bestWeapon[0].fireRate / 60 * secondsElapsed, bestWeapon[1].total); shot++, bestWeapon[1].total--) {
+		for (let shot = 0; shot < Math.min(bestWeapon[0].fireRate / 60 * secondsElapsed * this.actingAs, bestWeapon[1].total); shot++, bestWeapon[1].total--) {
 			if (Math.random() < bestWeapon[0].accuracy) {
 				damage += (bestWeapon[0].efficacy.get(collection.type) || 0) * ((bestWeapon[0].range - distanceToTarget) / bestWeapon[0].range);
 			}
@@ -164,12 +165,26 @@ export abstract class Unit implements Entity {
 	}
 
 	public fuzzLocation(MAX_DISTANCE: number = 50): void {
+		if (this.actingAs > 1) return;
+
 		let point = turf.point(this.location);
 		let distance = Utilities.randomInt(0, MAX_DISTANCE);
 		let bearing = Utilities.randomInt(-180, 180);
 
 		let fuzzedLocation = turf.destination(point, distance, bearing, { units: "meters" });
 		this.location = turf.getCoord(fuzzedLocation) as Vector2;
+	}
+
+	public actingAs: number = 1;
+	public enableSingleUnitMode(count: number) {
+		this.actingAs = count;
+
+		this.maxHealth *= count;
+		this.health *= count;
+		for (let i = 0; i < this.weapons.length; i++) {
+			this.weapons[i][1].magazine *= count;
+			this.weapons[i][1].total *= count;
+		}
 	}
 }
 
@@ -213,7 +228,8 @@ export class TankT55 extends Unit {
 			canResupply: false
 		}]
 	];
-	public health: number = 100;
+	public maxHealth = 100;
+	public health = this.maxHealth;
 
 	constructor(location: Vector2, public container: AgentCollection<Unit>) {
 		super();
@@ -261,7 +277,8 @@ export class InfantrySquad extends Unit {
 			canResupply: false
 		}]
 	];
-	public health: number = 100; // * this.memberCount;
+	public maxHealth = 100 * this.memberCount;
+	public health = this.maxHealth;
 
 	constructor(location: Vector2, public container: AgentCollection<Unit>) {
 		super();
