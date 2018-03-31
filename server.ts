@@ -5,6 +5,10 @@ import pbf = require("pbf");
 import * as turf from "@turf/turf";
 const { VectorTile }: { VectorTile: VTileInit } = require("@mapbox/vector-tile");
 
+process.on("unhandledRejection", reason => {
+	throw reason;
+});
+
 interface VTileInit {
 	new (protobuf: any, end?: number): VTile;
 }
@@ -121,20 +125,7 @@ app.route("/terrain/:coords").get(async (request, response) => {
 	let points = rawPoints.split(";").map(pair => {
 		return pair.split(",").map(coord => parseFloat(coord)) as Vector2;
 	});
-	
-	let pointsForTile = new Map<Vector2, Vector2[]>();
-	let tilePoints = new Set(points.map(point => {
-		let tileXY = getTileXY(point, zoom);
-		if (pointsForTile.has(tileXY)) {
-			pointsForTile.set(tileXY, pointsForTile.get(tileXY)!.concat(point));
-		}
-		else {
-			pointsForTile.set(tileXY, [point]);
-		}
-		return tileXY;
-	}));
 
-	// Load tile data in parallel
 	enum LandCover {
 		"urban",
 		"crop",
@@ -142,48 +133,45 @@ app.route("/terrain/:coords").get(async (request, response) => {
 		"scrub",
 		"wood",
 	}
-	let tilePromises: Promise<any>[] = [];
-	for (let tilePoint of tilePoints.values()) {
-		tilePromises.push(new Promise<any>(async (resolve, reject) => {
+	
+	// Load tile data in parallel
+	let existingTiles = new Map<string, VTile>();
+	let data = await Promise.all(points.map(async point => {
+		let tilePoint = getTileXY(point, zoom);
+		let tile = existingTiles.get(tilePoint.join(","));
+		if (!tile) {
 			let data = await readFileAsync(`./tile-cache/terrain-${zoom}-${tilePoint[0]}-${tilePoint[1]}.mvt`);
-			let tile = new VectorTile(new pbf(data));
-			let pointsInTile = pointsForTile.get(tilePoint)!.map(point => {
-				return {
-					location: point,
-					elevation: -Infinity,
-					type: LandCover.urban
-				};
-			});
+			tile = new VectorTile(new pbf(data));
+			existingTiles.set(tilePoint.join(","), tile);
+		}
 
-			for (let i = 0; i < tile.layers.contour.length; i++) {
-				let feature: VTileFeature<{ele: number; index: number}> = tile.layers.contour.feature(i);
-				let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
-				for (let point of pointsInTile) {
-					if (point.elevation < feature.properties.ele && turf.booleanPointInPolygon(point.location, polygon)) {
-						point.elevation = feature.properties.ele;
-					}
-				}
-			}
-			for (let i = 0; i < tile.layers.landcover.length; i++) {
-				let feature: VTileFeature<{class: keyof typeof LandCover}> = tile.layers.landcover.feature(i);
-				let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
-				for (let point of pointsInTile) {
-					
-					if (point.type < LandCover[feature.properties.class] && turf.booleanPointInPolygon(point.location, polygon)) {
-						point.type = LandCover[feature.properties.class];
-					}
-				}
-			}
+		let processed = {
+			location: point,
+			elevation: -Infinity,
+			type: LandCover.urban
+		};
 
-			resolve(pointsInTile.map(point => {
-				return {
-					...point,
-					type: LandCover[point.type]
-				};
-			}));
-		}));
-	}
-	response.send(await Promise.all(tilePromises));
+		for (let i = 0; i < tile.layers.contour.length; i++) {
+			let feature: VTileFeature<{ele: number; index: number}> = tile.layers.contour.feature(i);
+			let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
+			if (processed.elevation < feature.properties.ele && turf.booleanPointInPolygon(processed.location, polygon)) {
+				processed.elevation = feature.properties.ele;
+			}
+		}
+		for (let i = 0; i < tile.layers.landcover.length; i++) {
+			let feature: VTileFeature<{class: keyof typeof LandCover}> = tile.layers.landcover.feature(i);
+			let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
+			if (processed.type < LandCover[feature.properties.class] && turf.booleanPointInPolygon(processed.location, polygon)) {
+				processed.type = LandCover[feature.properties.class];
+			}
+		}
+
+		return {
+			...processed,
+			type: LandCover[processed.type]
+		};
+	}));
+	response.send(data);
 });
 
 const PORT = 3001;
