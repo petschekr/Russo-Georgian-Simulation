@@ -1,7 +1,7 @@
 import { Vector2, Waypoint, Entity, Utilities, NAVIGATION_THRESHOLD } from "./common";
 import { AgentCollection } from "./collections";
 import { Weapon, Weapons, UnitType } from "./weapons";
-import { TerrainType } from "./mapdata";
+import { LandCover } from "./mapdata";
 
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
@@ -143,21 +143,21 @@ export abstract class Unit implements Entity {
 		}
 	}
 
-	public abstract setSpeedForTerrain(grade: number, terrain: TerrainType): void;
-	protected speedForTerrain(grade: number, gradeCoefficient: number, terrain: TerrainType): number {
+	public abstract setSpeedForTerrain(grade: number, terrain: LandCover): void;
+	protected speedForTerrain(grade: number, gradeCoefficient: number, terrain: LandCover): number {
 		let speed = this.maxSpeed * Math.exp(gradeCoefficient * grade);
 		if (grade > this.maxClimbAbility) {
 			console.error(`Max grade exceeded. Speed will be 0. ${this.id}`);
 			speed = 0;
 		}
 		// TODO: actually use terrain somehow
-		if (terrain.urban) {
+		if (terrain === "urban") {
 			speed *= this.movement.urban;
 		}
-		if (terrain.wood) {
+		if (terrain === "wood") {
 			speed *= this.movement.forest;
 		}
-		if (terrain.crop || terrain.grass || terrain.scrub) {
+		if (terrain === "crop" || terrain === "grass" || terrain === "scrub") {
 			speed *= this.movement.steppe;
 		}
 
@@ -238,7 +238,7 @@ export class TankT55 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
 		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
@@ -293,7 +293,7 @@ export class TankT72 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
 		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
@@ -348,7 +348,7 @@ export class ArtilleryDANA extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
 		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
@@ -403,7 +403,7 @@ export class BTR80 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
 		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
@@ -458,7 +458,7 @@ export class BMP2 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
 		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
@@ -508,7 +508,7 @@ export class Cobra extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
 		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
@@ -558,7 +558,7 @@ export class InfantrySquad extends Unit {
 	}
 
 	// Source for humans: http://mtntactical.com/research/walking-uphill-10-grade-cuts-speed-13not-12/
-	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
 		this.speed = this.speedForTerrain(grade, -1.5, terrain);
 	}
 }
@@ -590,7 +590,7 @@ export class MountedInfantrySquad extends InfantrySquad {
 		this.id = `MountedInfSquad(${this.memberCount})_${MountedInfantrySquad.creationCountSubclassed++}`;
 	}
 
-	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
 		let coefficient = this.container.type === UnitType.Infantry ? -1.5 : -4;
 		this._speed = this.speedForTerrain(grade, coefficient, terrain);
 	}

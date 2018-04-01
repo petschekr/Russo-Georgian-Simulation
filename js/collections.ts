@@ -1,7 +1,7 @@
 import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD, Utilities } from "./common";
 import { Unit, TankT55, Cobra, BTR80, TankT72, ArtilleryDANA, BMP2, InfantrySquad, MountedInfantrySquad } from "./units";
 import { UnitType } from "./weapons";
-import { getDirections, terrainAlongLine, terrainFeatures, TerrainReturn, TerrainType } from "./mapdata";
+import { getDirections, terrainAlongLine, TerrainReturn, LandCover } from "./mapdata";
 import { map, dispatcher } from "./main";
 
 import * as _turf from "@turf/turf";
@@ -117,18 +117,26 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		let next = this.waypoints[0];
 		this.intermediatePoints = await getDirections(this.location, next.location, this.type);
 		let intermediatePath = turf.lineString(this.intermediatePoints);
+
+		const terrainSample = 500; // meters
+		this.currentTerrain = await terrainAlongLine(intermediatePath, terrainSample);
 		// Don't take really inefficient paths
 		const inefficientPathFactor = 2.5;
 		if (turf.length(intermediatePath) > turf.distance(this.location, next.location) * inefficientPathFactor) {
-			this.intermediatePoints = [this.location, next.location];
-			intermediatePath = turf.lineString(this.intermediatePoints);
+			// Check if direct path is too steep
+			let heightDiffs = this.currentTerrain.map(terrain => terrain.elevation).slice(1).map((ele, i, arr) => Math.abs(ele - arr[i]));
+			if (Math.max(...heightDiffs) / terrainSample <= this.units[0].maxClimbAbility) {
+				// Set path to be direct
+				this.intermediatePoints = [this.location, next.location];
+				intermediatePath = turf.lineString(this.intermediatePoints);
+			}
+			else {
+				console.warn("Taking long route because max steepness along route is too high");
+			}
 		}
 
 		this.sources.get("path")!.source.setData(intermediatePath);
 
-		// let chunks = turf.lineChunk(intermediatePath, 1, { units: "kilometers" });
-		// let chunks2 = chunks.features[0];
-		this.currentTerrain = await terrainAlongLine(intermediatePath);
 		
 		let allCoords = turf.getCoords(intermediatePath);
 		let start = allCoords[0] as Vector2;
@@ -202,7 +210,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		for (let unit of this.units) {
 			if (this.navigating) {
 				if (this.currentTerrain.length > 0) {
-					unit.setSpeedForTerrain(this.currentGrade, this.currentTerrain[0].terrain);
+					unit.setSpeedForTerrain(this.currentGrade, this.currentTerrain[0].type);
 				}
 				if (unit.navigate(secondsElapsed)) {
 					finishedNavigation++;
@@ -551,7 +559,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 				color: this.color,
 				team: Team[this.team],
 				health: this.health,
-				terrain: this.currentTerrain.length > 0 ? this.currentTerrain[0].terrain.toString() : "N/A"
+				terrain: this.currentTerrain.length > 0 ? this.currentTerrain[0].type : "N/A"
 			});
 		});
 		map.on("mouseleave", this.sources.get("visibility")!.id, () => {
