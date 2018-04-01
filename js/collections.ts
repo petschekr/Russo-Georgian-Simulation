@@ -18,7 +18,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 	public readonly id: string;
 	public abstract readonly type: UnitType;
-	protected readonly team: Team;
+	public readonly team: Team;
 	public eliminated: boolean = false;
 
 	public waypoints: Waypoint[];
@@ -28,10 +28,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 	public units: T[] = [];
 
-	private sources: Map<string, { id: string, source: mapboxgl.GeoJSONSource }> = new Map();
-	private color: string;
-
-	private visibilityArea: GeoFeature<_turf.helpers.Polygon | _turf.helpers.MultiPolygon> = turf.polygon([[[0, 0], [0, 0], [0, 0], [0, 0]]]);
+	private visibilityArea: GeoFeature<_turf.helpers.Polygon> = turf.polygon([[[0, 0], [0, 0], [0, 0], [0, 0]]]);
 	public maxVisibilityRange: number = 0;
 
 	// Get centroid location average of all included units
@@ -71,19 +68,6 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			this.waypoints = [{ location: this.location }];
 		}
 		this.intermediatePoints = [this.location, this.location];
-
-		switch (team) {
-			case Team.Russia:
-				this.color = "#FF4136";
-				break;
-			case Team.Georgia:
-				this.color = "#0074D9";
-				break;
-			default:
-				this.color = "#FFFFFF";
-		}
-
-		this.drawInit();
 	}
 
 	protected setUp(unit: new(location: Vector2, container: AgentCollection<Unit>) => T, unitNumber: number, location: Vector2) {
@@ -135,8 +119,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			}
 		}
 
-		this.sources.get("path")!.source.setData(intermediatePath);
-
+		dispatcher.layerData.get(this.team)!.path.set(this.id, intermediatePath);
 		
 		let allCoords = turf.getCoords(intermediatePath);
 		let start = allCoords[0] as Vector2;
@@ -165,11 +148,10 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			this.eliminated = true;
 			this.waypoints = [];
 			// Hide collection
-			for (let [type, {id}] of this.sources.entries()) {
-				if (type !== "location") {
-					map.setLayoutProperty(id, "visibility", "none");
-				}
-			}
+			dispatcher.layerData.get(this.team)!.path.delete(this.id);
+			dispatcher.layerData.get(this.team)!.units.delete(this.id);
+			dispatcher.layerData.get(this.team)!.visibility.delete(this.id);
+			dispatcher.layerData.get(this.team)!.waypoints.delete(this.id);
 		}
 		if (this.eliminated) return;
 
@@ -182,7 +164,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			if (this.waypoints.length === 0) {
 				console.log(`${this.id} is done with navigation!`);
 				// Hide intermediate points path
-				map.setLayoutProperty(this.sources.get("path")!.id, "visibility", "none");
+				dispatcher.layerData.get(this.team)!.path.delete(this.id);
 			}
 			else {
 				console.log(`${this.id} moving to next objective. ${this.waypoints.length - 1} remaining.`);
@@ -231,12 +213,15 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		await this.combat(secondsElapsed);
 
 		// Update visualizations on map
-		this.sources.get("location")!.source.setData(turf.point(this.location));
-		this.sources.get("units")!.source.setData(turf.multiPoint(this.units.map(unit => unit.location)));
+		dispatcher.layerData.get(this.team)!.location.set(this.id, turf.point(this.location));
+		dispatcher.layerData.get(this.team)!.units.set(this.id, turf.multiPoint(this.units.map(unit => unit.location)));
 		if (this.waypoints.length > 0) {
-			this.sources.get("waypoints")!.source.setData(turf.lineString([this.location, ...this.waypoints.map(waypoint => waypoint.location)]));
+			dispatcher.layerData.get(this.team)!.waypoints.set(
+				this.id,
+				turf.lineString([this.location, ...this.waypoints.map(waypoint => waypoint.location)])
+			);
 		}
-		this.sources.get("visibility")!.source.setData(this.visibilityArea);
+		dispatcher.layerData.get(this.team)!.visibility.set(this.id, this.visibilityArea);
 	}
 
 	private static areBadOdds(me: AgentCollection<Unit>, them: AgentCollection<Unit>): boolean {
@@ -444,132 +429,6 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			}
 		}
 		return this.eliminated;
-	}
-
-	public mapboxIDs: string[] = [];
-	private drawInit(): void {
-		// Add sources
-		type SourceGeoJSON = GeoFeature<_turf.helpers.Point>
-			| GeoFeature<_turf.helpers.MultiPoint>
-			| GeoFeature<_turf.helpers.LineString>
-			| GeoFeature<_turf.helpers.Polygon | _turf.helpers.MultiPolygon>;
-
-		let data: [string, SourceGeoJSON][] = [
-			["location", turf.point(this.location)],
-			["path", turf.lineString(this.intermediatePoints)],
-			["waypoints", turf.lineString([this.location, ...this.waypoints.map(waypoint => waypoint.location)])],
-			["units", turf.multiPoint(this.units.map(unit => unit.location))],
-			["visibility", this.visibilityArea]
-		];
-		for (let [id, geojson] of data) {
-			let sourceID = `${this.id}_${id}`;
-			map.addSource(sourceID, {
-				type: "geojson",
-				data: geojson
-			});
-			this.sources.set(id, {
-				id: sourceID,
-				source: map.getSource(sourceID) as mapboxgl.GeoJSONSource
-			});
-		}
-
-		// HTML controls for data visualization
-		let controlAndLayerIDs = new Map([
-			["show-waypoints", "waypoints"],
-			["show-collections", "location"],
-			["show-units", "units"],
-			["show-path", "path"],
-			["show-visibility", "visibility"],
-		]);
-		for (let [controlID, layerID] of controlAndLayerIDs.entries()) {
-			const control = document.getElementById(controlID) as HTMLInputElement;
-			control.addEventListener("change", () => {
-				if (control.checked) {
-					map.setLayoutProperty(this.sources.get(layerID)!.id, "visibility", "visible");
-				}
-				else {
-					map.setLayoutProperty(this.sources.get(layerID)!.id, "visibility", "none");
-				}
-			})
-		}
-		
-		map.addLayer({
-			"id": this.sources.get("waypoints")!.id,
-			"source": this.sources.get("waypoints")!.id,
-			"type": "line",
-			"layout": {
-				"line-join": "round",
-				"line-cap": "round"
-			},
-			"paint": {
-				"line-color": this.color,
-				"line-width": 2,
-				"line-opacity": 0.9
-			}
-		});
-		map.addLayer({
-			"id": this.sources.get("visibility")!.id,
-			"source": this.sources.get("visibility")!.id,
-			"type": "fill",
-			"paint": {
-				"fill-color": this.color,
-				"fill-opacity": 0.5
-			}
-		});
-		map.addLayer({
-			"id": this.sources.get("location")!.id,
-			"source": this.sources.get("location")!.id,
-			"type": "circle",
-			"paint": {
-				"circle-radius": 10,
-				"circle-color": this.color
-			}
-		});
-		map.addLayer({
-			"id": this.sources.get("path")!.id,
-			"source": this.sources.get("path")!.id,
-			"type": "line",
-			"layout": {
-				"line-join": "round",
-				"line-cap": "round",
-			},
-			// "minzoom": 11,
-			"paint": {
-				"line-color": this.color,
-				"line-width": 6,
-				"line-opacity": 0.9
-			}
-		});
-		map.addLayer({
-			"id": this.sources.get("units")!.id,
-			"source": this.sources.get("units")!.id,
-			"type": "circle",
-			"paint": {
-				"circle-radius": 4,
-				"circle-color": "#111",
-				"circle-stroke-width": 2,
-				"circle-stroke-color": "#FFFFFF"
-			}
-		});
-
-		// Attach event handlers for unit details
-		map.on("mousemove", this.sources.get("visibility")!.id, () => {
-			dispatcher.addInfo({
-				name: this.id,
-				color: this.color,
-				team: Team[this.team],
-				health: this.health,
-				terrain: this.currentTerrain.length > 0 ? this.currentTerrain[0].type : "N/A"
-			});
-		});
-		map.on("mouseleave", this.sources.get("visibility")!.id, () => {
-			dispatcher.removeInfo(this.id);
-		});
-
-		// Make available a list of IDs so they can be deleted if necessary
-		for (let source of this.sources.values()) {
-			this.mapboxIDs.push(source.id);
-		}
 	}
 
 	// public split(numberPerGroup: number[]): this[] {

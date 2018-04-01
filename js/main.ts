@@ -23,7 +23,7 @@ export const DEBUGGING = false;
 
 export const map = new mapboxgl.Map({
     container: "map",
-	style: "mapbox://styles/mapbox/outdoors-v9",
+	style: "mapbox://styles/mapbox/outdoors-v9?optimize=true",
 	center: [43.968468, 42.218956],
 	zoom: 14,
 	bearingSnap: 20
@@ -480,7 +480,11 @@ async function start() {
 		if (dispatcher) {
 			for (let id of dispatcher.layerIDs) {
 				// Layer and source IDs are the same
-				map.removeLayer(id).removeSource(id);
+				let source = map.getSource(id) as mapboxgl.GeoJSONSource | undefined;
+				if (source) {
+					source.setData(turf.point([0, 0]));
+				}
+				//map.removeLayer(id).removeSource(id);
 			}
 		}
 

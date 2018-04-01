@@ -1,7 +1,8 @@
-import * as _turf from "@turf/turf";
 import { UnitType } from "./weapons";
 import { Unit } from "./units";
 import { AgentCollection } from "./collections";
+import { map } from "./main";
+import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
 declare const moment: any;
 
@@ -87,6 +88,19 @@ export class Dispatcher {
 		this.time = new Date(start.valueOf());
 		this.entities = entities;
 
+		this.layerData = new Map();
+		for (let team of [Team.Russia, Team.Georgia, Team.SouthOssetia]) {
+			this.layerData.set(team, {
+				location: new Map<string, _turf.Feature<_turf.Point>>(),
+				path: new Map<string, _turf.Feature<_turf.LineString>>(),
+				waypoints: new Map<string, _turf.Feature<_turf.LineString>>(),
+				units: new Map<string, _turf.Feature<_turf.MultiPoint>>(),
+				visibility: new Map<string, _turf.Feature<_turf.Polygon>>(),
+			});
+		}
+		this.setupLayers();
+		this.paint();
+		
 		window.addEventListener("mousemove", e => {
 			if (this.hoverInfo.length > 0) {
 				this.hoverInfoBox.style.top = `${e.pageY + 15}px`;
@@ -163,10 +177,8 @@ export class Dispatcher {
 
 	public get layerIDs(): string[] {
 		let ids: string[] = [];
-		for (let entity of this.entities) {
-			if (entity instanceof AgentCollection) {
-				ids = ids.concat(entity.mapboxIDs);
-			}
+		for (let [team, layers] of this.layerData.entries()) {
+			ids = ids.concat(Object.keys(layers).map(layer => `${team}_${layer}`));
 		}
 		return ids;
 	}
@@ -190,11 +202,167 @@ export class Dispatcher {
 		return this.detectedCollections.get(team)!;
 	}
 
+	public layerData: Map<Team, {
+		location: Map<string, _turf.Feature<_turf.Point>>;
+		path: Map<string, _turf.Feature<_turf.LineString>>;
+		waypoints: Map<string, _turf.Feature<_turf.LineString>>;
+		units: Map<string, _turf.Feature<_turf.MultiPoint>>;
+		visibility: Map<string, _turf.Feature<_turf.Polygon>>;
+	}>;
+	private setupLayers() {
+		// Add sources
+		for (let [team, layers] of this.layerData.entries()) {
+			for (let key of Object.keys(layers)) {
+				map.addSource(`${team}_${key}`, {
+					type: "geojson",
+					data: turf.point([0, 0])
+				});
+			}
+		}
+
+		// HTML controls for data visualization
+		let controlAndLayerIDs = new Map([
+			["show-waypoints", "waypoints"],
+			["show-collections", "location"],
+			["show-units", "units"],
+			["show-path", "path"],
+			["show-visibility", "visibility"],
+		]);
+		for (let [controlID, layerID] of controlAndLayerIDs.entries()) {
+			const control = document.getElementById(controlID) as HTMLInputElement;
+			control.addEventListener("change", () => {
+				const visibility = control.checked ? "visible" : "none";
+				for (let team of this.layerData.keys()) {
+					map.setLayoutProperty(`${team}_${layerID}`, "visibility", visibility);
+				}
+			})
+		}
+		
+		for (let team of this.layerData.keys()) {
+			let color: string = "#FFFFFF";
+			switch (team) {
+				case Team.Russia:
+					color = "#FF4136";
+					break;
+				case Team.Georgia:
+					color = "#0074D9";
+					break;
+				case Team.SouthOssetia:
+					color = "#FFDC00";
+			}
+
+			map.addLayer({
+				"id": `${team}_waypoints`,
+				"source": `${team}_waypoints`,
+				"type": "line",
+				"layout": {
+					"line-join": "round",
+					"line-cap": "round"
+				},
+				"paint": {
+					"line-color": color,
+					"line-width": 2,
+					"line-opacity": 0.9
+				}
+			});
+			map.addLayer({
+				"id": `${team}_visibility`,
+				"source": `${team}_visibility`,
+				"type": "fill",
+				"paint": {
+					"fill-color": color,
+					"fill-opacity": 0.5
+				}
+			});
+			map.addLayer({
+				"id": `${team}_location`,
+				"source": `${team}_location`,
+				"type": "circle",
+				"paint": {
+					"circle-radius": 10,
+					"circle-color": color
+				}
+			});
+			map.addLayer({
+				"id": `${team}_path`,
+				"source": `${team}_path`,
+				"type": "line",
+				"layout": {
+					"line-join": "round",
+					"line-cap": "round",
+				},
+				// "minzoom": 11,
+				"paint": {
+					"line-color": color,
+					"line-width": 6,
+					"line-opacity": 0.9
+				}
+			});
+			map.addLayer({
+				"id": `${team}_units`,
+				"source": `${team}_units`,
+				"type": "circle",
+				"paint": {
+					"circle-radius": 4,
+					"circle-color": "#111",
+					"circle-stroke-width": 2,
+					"circle-stroke-color": "#FFFFFF"
+				}
+			});
+		}
+
+		// Attach event handlers for unit details
+		// map.on("mousemove", this.sources.get("visibility")!.id, () => {
+		// 	dispatcher.addInfo({
+		// 		name: this.id,
+		// 		color: this.color,
+		// 		team: Team[this.team],
+		// 		health: this.health,
+		// 		terrain: this.currentTerrain.length > 0 ? this.currentTerrain[0].type : "N/A"
+		// 	});
+		// });
+		// map.on("mouseleave", this.sources.get("visibility")!.id, () => {
+		// 	dispatcher.removeInfo(this.id);
+		// });
+
+		for (let collection of this.entities) {
+			if (!(collection instanceof AgentCollection)) continue;
+			// Set some initial visualization data
+			this.layerData.get(collection.team)!.location.set(
+				collection.id,
+				turf.point(collection.location)
+			);
+			this.layerData.get(collection.team)!.waypoints.set(
+				collection.id,
+				turf.lineString([collection.location, ...collection.waypoints.map(waypoint => waypoint.location)])
+			);
+			this.layerData.get(collection.team)!.units.set(
+				collection.id,
+				turf.multiPoint(collection.units.map(unit => unit.location))
+			);
+		}
+	}
+	public paint() {
+		for (let [team, layers] of this.layerData.entries()) {
+			for (let key of Object.keys(layers) as (keyof typeof layers)[]) {
+				let source = map.getSource(`${team}_${key}`) as mapboxgl.GeoJSONSource;
+				// Assemble data
+				let data: _turf.Feature<_turf.Point | _turf.MultiPoint | _turf.LineString | _turf.Polygon>[] = [];
+				for (let value of this.layerData.get(team)![key].values()) {
+					data.push(value);
+				}
+				source.setData(turf.combine(turf.featureCollection(data)));
+			}
+		}
+	}
+
 	public async tick(): Promise<void> {
 		this.time.setSeconds(this.time.getSeconds() + this.secondsPerTick);
 
 		for (let entity of this.entities) {
 			await entity.tick(this.secondsPerTick);
 		}
+		// Could be moved up into for loop if you want to see visualization after each collection tick
+		this.paint();
 	}
 }

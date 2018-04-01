@@ -9,7 +9,7 @@ export enum Mode {
 	Walking
 }
 
-function directionsUrlFormatter(start: Vector2, end: Vector2, type: Mode = Mode.Driving, full: boolean = false): string {
+function directionsUrlFormatter(start: Vector2, end: Vector2, type: Mode = Mode.Driving, full: boolean = true): string {
 	let coordinates = `${start[0]},${start[1]};${end[0]},${end[1]}`;
 	let mode = type === Mode.Walking ? "walking" : "driving";
 	let overview = full ? "full" : "simplified";
