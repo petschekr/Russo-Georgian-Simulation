@@ -1,7 +1,7 @@
 import { UnitType } from "./weapons";
 import { Unit } from "./units";
 import { AgentCollection } from "./collections";
-import { map } from "./main";
+import { map, dispatcher } from "./main";
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
 declare const moment: any;
@@ -53,9 +53,7 @@ export class Utilities {
 		return false;
 	}
 	static fastDistance(location1: Vector2, location2: Vector2): number { // Returns in meters
-		let dx = location1[0] - location2[0];
-		let dy = location1[1] - location2[1];
-		return turf.radiansToLength(turf.degreesToRadians(Math.sqrt(dx ** 2 + dy ** 2))) * 1000;
+		return turf.distance(location1, location2, { units: "meters" });
 	}
 }
 
@@ -209,6 +207,18 @@ export class Dispatcher {
 		units: Map<string, _turf.Feature<_turf.MultiPoint>>;
 		visibility: Map<string, _turf.Feature<_turf.Polygon>>;
 	}>;
+	public colorForTeam(team: Team): string {
+		switch (team) {
+			case Team.Russia:
+				return "#FF4136";
+			case Team.Georgia:
+				return "#0074D9";
+			case Team.SouthOssetia:
+				return "#FFDC00";
+			default:
+				return "#FFFFFF"
+		}
+	}
 	private setupLayers() {
 		// Add sources
 		for (let [team, layers] of this.layerData.entries()) {
@@ -239,17 +249,7 @@ export class Dispatcher {
 		}
 		
 		for (let team of this.layerData.keys()) {
-			let color: string = "#FFFFFF";
-			switch (team) {
-				case Team.Russia:
-					color = "#FF4136";
-					break;
-				case Team.Georgia:
-					color = "#0074D9";
-					break;
-				case Team.SouthOssetia:
-					color = "#FFDC00";
-			}
+			let color = this.colorForTeam(team);
 
 			map.addLayer({
 				"id": `${team}_waypoints`,
@@ -309,21 +309,30 @@ export class Dispatcher {
 					"circle-stroke-color": "#FFFFFF"
 				}
 			});
+			
 		}
-
+		
 		// Attach event handlers for unit details
-		// map.on("mousemove", this.sources.get("visibility")!.id, () => {
-		// 	dispatcher.addInfo({
-		// 		name: this.id,
-		// 		color: this.color,
-		// 		team: Team[this.team],
-		// 		health: this.health,
-		// 		terrain: this.currentTerrain.length > 0 ? this.currentTerrain[0].type : "N/A"
-		// 	});
-		// });
-		// map.on("mouseleave", this.sources.get("visibility")!.id, () => {
-		// 	dispatcher.removeInfo(this.id);
-		// });
+		function processMouseMove(e: any): void {
+			let position: Vector2 = [e.lngLat.lng, e.lngLat.lat];
+			for (let collection of dispatcher.entities) {
+				if (!(collection instanceof AgentCollection)) continue;
+
+				if (Utilities.fastDistance(position, collection.location) <= collection.maxVisibilityRange) {
+					dispatcher.addInfo({
+						name: collection.id,
+						color: dispatcher.colorForTeam(collection.team),
+						team: Team[collection.team],
+						health: collection.health,
+						terrain: collection._currentTerrain.length > 0 ? collection._currentTerrain[0].type : "N/A"
+					});
+				}
+				else {
+					dispatcher.removeInfo(collection.id);
+				}
+			}
+		}
+		map.on("mousemove", processMouseMove);
 
 		for (let collection of this.entities) {
 			if (!(collection instanceof AgentCollection)) continue;
@@ -339,6 +348,10 @@ export class Dispatcher {
 			this.layerData.get(collection.team)!.units.set(
 				collection.id,
 				turf.multiPoint(collection.units.map(unit => unit.location))
+			);
+			this.layerData.get(collection.team)!.visibility.set(
+				collection.id,
+				turf.circle(collection.location, collection.maxVisibilityRange, { units: "meters" })
 			);
 		}
 	}

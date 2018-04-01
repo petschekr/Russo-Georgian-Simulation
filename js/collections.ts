@@ -92,6 +92,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	// Navigation occurs on the unit collection level and instructions get
 	// propogated downwards to the individual units
 	private currentTerrain: TerrainReturn[] = [];
+	public get _currentTerrain() { return this.currentTerrain; }
 	private currentGrade: number = 0;
 	private async calculateNavigation(): Promise<void> {
 		if (this.waypoints.length <= 0) {
