@@ -64,3 +64,5 @@ server\.js
 server\.js\.map
 
 tile-cache/
+
+\.vscode/
