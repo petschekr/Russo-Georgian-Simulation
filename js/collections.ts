@@ -32,9 +32,10 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	public maxVisibilityRange: number = 0;
 
 	// Get centroid location average of all included units
+	private locationCache: Vector2 = this.defaultLocation;
 	get location(): Vector2 {
 		if (this.units.length === 0) {
-			return this.defaultLocation;
+			return this.locationCache;
 		}
 		let x = 0;
 		let y = 0;
@@ -45,7 +46,8 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		x /= this.units.length;
 		y /= this.units.length;
 		
-		return [x, y];
+		this.locationCache = [x, y]
+		return this.locationCache;
 	}
 
 	get health(): number {
@@ -105,11 +107,11 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 		const terrainSample = 500; // meters
 		this.currentTerrain = await terrainAlongLine(intermediatePath, terrainSample);
+		let heightDiffs = this.currentTerrain.map(terrain => terrain.elevation).map((ele, i, arr) => Math.abs(ele - arr[i - 1])).slice(1);
 		// Don't take really inefficient paths
 		const inefficientPathFactor = 2.5;
 		if (turf.length(intermediatePath) > turf.distance(this.location, next.location) * inefficientPathFactor) {
 			// Check if direct path is too steep
-			let heightDiffs = this.currentTerrain.map(terrain => terrain.elevation).slice(1).map((ele, i, arr) => Math.abs(ele - arr[i]));
 			if (Math.max(...heightDiffs) / terrainSample <= this.units[0].maxClimbAbility) {
 				// Set path to be direct
 				this.intermediatePoints = [this.location, next.location];
@@ -149,6 +151,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			this.eliminated = true;
 			this.waypoints = [];
 			// Hide collection
+			dispatcher.layerData.get(this.team)!.location.set(this.id, turf.point(this.location));
 			dispatcher.layerData.get(this.team)!.path.delete(this.id);
 			dispatcher.layerData.get(this.team)!.units.delete(this.id);
 			dispatcher.layerData.get(this.team)!.visibility.delete(this.id);

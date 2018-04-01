@@ -133,9 +133,7 @@ export class Dispatcher {
 			this.hoverInfoCompiled += `
 			<strong style="font-size: 80%;">${info.name}</strong>
 			<br />
-			Side: <span style="color: ${info.color}">${info.team}</span> | Health: ${info.health.toFixed(1)}
-			<br />
-			Next terrain: ${info.terrain}
+			<span style="color: ${info.color}">${info.team}</span> | H: ${info.health.toFixed(0)} | T: ${info.terrain}
 			`;
 			if (i !== this.hoverInfo.length - 1) {
 				this.hoverInfoCompiled += "<hr />"
@@ -318,7 +316,7 @@ export class Dispatcher {
 			for (let collection of dispatcher.entities) {
 				if (!(collection instanceof AgentCollection)) continue;
 
-				if (Utilities.fastDistance(position, collection.location) <= collection.maxVisibilityRange) {
+				if (Utilities.fastDistance(position, collection.location) <= (!collection.eliminated ? collection.maxVisibilityRange : 200)) {
 					dispatcher.addInfo({
 						name: collection.id,
 						color: dispatcher.colorForTeam(collection.team),
