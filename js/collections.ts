@@ -1,5 +1,5 @@
 import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD, Utilities } from "./common";
-import { Unit, TankT55, Cobra, BTR80, TankT72, ArtilleryDANA, BMP2, InfantrySquad, MountedInfantrySquad } from "./units";
+import { Unit, TankT55, Cobra, BTR80, TankT62, TankT72, ArtilleryD30, ArtilleryDANA, Akatsiya, MRLGrad, BMP2, InfantrySquad, MountedInfantrySquad } from "./units";
 import { UnitType } from "./weapons";
 import { getDirections, terrainAlongLine, TerrainReturn, LandCover } from "./mapdata";
 import { map, dispatcher } from "./main";
@@ -547,6 +547,19 @@ export class T55Battalion extends AgentCollection<TankT55> {
 	}
 }
 
+export class T62Battalion extends AgentCollection<TankT62> {
+	public readonly type: UnitType;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `T62Battalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.HeavyArmor;
+
+		this.setUp(TankT62, unitNumber, location);
+	}
+}
+
 export class T72Battalion extends AgentCollection<TankT72> {
 	public readonly type: UnitType;
 
@@ -560,7 +573,46 @@ export class T72Battalion extends AgentCollection<TankT72> {
 	}
 }
 
-export class ArtilleryBattalion extends AgentCollection<ArtilleryDANA> {
+export class D30Battalion extends AgentCollection<ArtilleryD30> {
+	public readonly type: UnitType;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `D30Battalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.UnarmoredVehicle;
+		
+		this.setUp(ArtilleryD30, unitNumber, location);
+	}
+}
+
+export class DANABattalion extends AgentCollection<ArtilleryDANA> {
+	public readonly type: UnitType;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `DANABattalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.UnarmoredVehicle;
+		
+		this.setUp(ArtilleryDANA, unitNumber, location);
+	}
+}
+
+export class AkatsiyaBattalion extends AgentCollection<Akatsiya> {
+	public readonly type: UnitType;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `AkatsiyaBattalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.UnarmoredVehicle;
+
+		this.setUp(Akatsiya, unitNumber, location);
+	}
+}
+
+export class MRLBattalion extends AgentCollection<MRLGrad> {
 	public readonly type: UnitType;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
@@ -568,7 +620,7 @@ export class ArtilleryBattalion extends AgentCollection<ArtilleryDANA> {
 		super(id, team, location, waypoints);
 		
 		this.type = UnitType.UnarmoredVehicle;
-		
-		this.setUp(ArtilleryDANA, unitNumber, location);
+
+		this.setUp(MRLGrad, unitNumber, location);
 	}
 }

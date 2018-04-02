@@ -34,9 +34,22 @@ export namespace Weapons {
 		accuracy: 0.3,
 		terminalEffect: 0
 	};
+	export const RGD5: Weapon = {
+		name: "RGD-5 grenade",
+		range: 50,
+		efficacy: new Map([
+			[UnitType.Infantry, 100],
+			[UnitType.UnarmoredVehicle, 40],
+			[UnitType.LightArmor, 8],
+			[UnitType.HeavyArmor, 4]
+		]),
+		fireRate: 12,
+		accuracy: 0.2,
+		terminalEffect: 10
+	};
 	export const DANA: Weapon = {
 		name: "152mm SpGH DANA",
-		range: 18000,
+		range: 19000,
 		efficacy: new Map([
 			[UnitType.Infantry, 100],
 			[UnitType.UnarmoredVehicle, 100],
@@ -44,8 +57,47 @@ export namespace Weapons {
 			[UnitType.HeavyArmor, 50]
 		]),
 		fireRate: 3,
-		accuracy: 0.2,
+		accuracy: 0.3,
 		terminalEffect: 75
+	};
+	export const D22: Weapon = {
+		name: "D-22 howitzer",
+		range: 18000,
+		efficacy: new Map([
+			[UnitType.Infantry, 100],
+			[UnitType.UnarmoredVehicle, 100],
+			[UnitType.LightArmor, 75],
+			[UnitType.HeavyArmor, 50]
+		]),
+		fireRate: 2,
+		accuracy: 0.3,
+		terminalEffect: 75
+	};
+	export const Grad: Weapon = {
+		name: "BM-21 Grad",
+		range: 30000,
+		efficacy: new Map([
+			[UnitType.Infantry, 100],
+			[UnitType.UnarmoredVehicle, 100],
+			[UnitType.LightArmor, 70],
+			[UnitType.HeavyArmor, 40]
+		]),
+		fireRate: 40,
+		accuracy: 0.2,
+		terminalEffect: 30
+	};
+	export const D30: Weapon = {
+		name: "D-30 howitzer",
+		range: 15000,
+		efficacy: new Map([
+			[UnitType.Infantry, 100],
+			[UnitType.UnarmoredVehicle, 100],
+			[UnitType.LightArmor, 75],
+			[UnitType.HeavyArmor, 50]
+		]),
+		fireRate: 6,
+		accuracy: 0.4,
+		terminalEffect: 60
 	};
 	export const D81: Weapon = {
 		name: "T-72 D-81",
@@ -58,6 +110,19 @@ export namespace Weapons {
 		]),
 		fireRate: 8,
 		accuracy: 0.7,
+		terminalEffect: 6
+	};
+	export const U5TS: Weapon = {
+		name: "T-62 U-5TS",
+		range: 2000,
+		efficacy: new Map([
+			[UnitType.Infantry, 50],
+			[UnitType.UnarmoredVehicle, 100],
+			[UnitType.LightArmor, 70],
+			[UnitType.HeavyArmor, 35]
+		]),
+		fireRate: 8,
+		accuracy: 0.6,
 		terminalEffect: 5
 	};
 	export const D10: Weapon = {
@@ -70,8 +135,8 @@ export namespace Weapons {
 			[UnitType.HeavyArmor, 30]
 		]),
 		fireRate: 4,
-		accuracy: 0.6,
-		terminalEffect: 5
+		accuracy: 0.5,
+		terminalEffect: 4
 	};
 	export const SGMT: Weapon = {
 		name: "T-55 SGMT",
@@ -130,7 +195,7 @@ export namespace Weapons {
 		range: 2000,
 		efficacy: new Map([
 			[UnitType.Infantry, 100],
-			[UnitType.UnarmoredVehicle, 25],
+			[UnitType.UnarmoredVehicle, 30],
 			[UnitType.LightArmor, 10],
 			[UnitType.HeavyArmor, 2.5]
 		]),
