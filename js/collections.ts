@@ -1,5 +1,5 @@
 import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD, Utilities } from "./common";
-import { Unit, TankT55, Cobra, BTR80, TankT72, ArtilleryDANA, BMP2, InfantrySquad, MountedInfantrySquad } from "./units";
+import { Unit, TankT55, Cobra, BTR80, TankT62, TankT72, ArtilleryD30, ArtilleryDANA, Akatsiya, MRLGrad, BMP2, InfantrySquad, MountedInfantrySquad } from "./units";
 import { UnitType } from "./weapons";
 import { getDirections, terrainAlongLine, terrainFeatures, TerrainReturn, TerrainType } from "./mapdata";
 import { map, dispatcher } from "./main";
@@ -695,8 +695,36 @@ export class T55Battalion extends AgentCollection<TankT55> {
 		super(id, team, location, waypoints);
 		
 		this.type = UnitType.HeavyArmor;
+		for (let i = 0; i < unitNumber; i++) {
+			this.units.push(new TankT55(location, this));
+		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
+		}
+	}
+}
+
+export class T62Battalion extends AgentCollection<TankT55> {
+	public readonly type: UnitType;
+	public maxVisibilityRange: number;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `T62Battalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
 		
-		this.setUp(TankT55, unitNumber, location);
+		this.type = UnitType.HeavyArmor;
+		for (let i = 0; i < unitNumber; i++) {
+			this.units.push(new TankT62(location, this));
+		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
+		}
 	}
 }
 
@@ -721,7 +749,70 @@ export class T72Battalion extends AgentCollection<TankT72> {
 	}
 }
 
-export class ArtilleryBattalion extends AgentCollection<ArtilleryDANA> {
+export class D30Battalion extends AgentCollection<ArtilleryD30> {
+	public readonly type: UnitType;
+	public maxVisibilityRange: number;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `D30Battalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.UnarmoredVehicle;
+		for (let i = 0; i < unitNumber; i++) {
+			this.units.push(new ArtilleryD30(location, this));
+		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
+		}
+	}
+}
+
+export class DANABattalion extends AgentCollection<ArtilleryDANA> {
+	public readonly type: UnitType;
+	public maxVisibilityRange: number;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `DANABattalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.UnarmoredVehicle;
+		for (let i = 0; i < unitNumber; i++) {
+			this.units.push(new ArtilleryDANA(location, this));
+		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
+		}
+	}
+}
+
+export class AkatsiyaBattalion extends AgentCollection<Akatsiya> {
+	public readonly type: UnitType;
+	public maxVisibilityRange: number;
+
+	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
+		let id = `AkatsiyaBattalion_${Team[team]}_${name}`;
+		super(id, team, location, waypoints);
+		
+		this.type = UnitType.UnarmoredVehicle;
+		for (let i = 0; i < unitNumber; i++) {
+			this.units.push(new Akatsiya(location, this));
+		}
+		if (this.units.length > 0) {
+			this.maxVisibilityRange = this.units[0].visibility.range;
+		}
+		else {
+			this.maxVisibilityRange = 0;
+		}
+	}
+}
+
+export class MRLBattalion extends AgentCollection<MRLGrad> {
 	public readonly type: UnitType;
 	public maxVisibilityRange: number;
 
@@ -731,7 +822,7 @@ export class ArtilleryBattalion extends AgentCollection<ArtilleryDANA> {
 		
 		this.type = UnitType.UnarmoredVehicle;
 		for (let i = 0; i < unitNumber; i++) {
-			this.units.push(new ArtilleryDANA(location, this));
+			this.units.push(new MRLGrad(location, this));
 		}
 		if (this.units.length > 0) {
 			this.maxVisibilityRange = this.units[0].visibility.range;

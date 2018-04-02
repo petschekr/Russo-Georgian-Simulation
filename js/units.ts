@@ -224,7 +224,7 @@ export class TankT55 extends Unit {
 		}],
 		[Weapons.SGMT, {
 			magazine: 250,
-			total: 500,
+			total: 1500,
 			canResupply: false
 		}]
 	];
@@ -242,6 +242,61 @@ export class TankT55 extends Unit {
 		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
+
+export class TankT62 extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.HeavyArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 14;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.7,
+		forest: 0.1,
+		urban: 0.2
+	};
+
+	public visibility = {
+		range: 1500,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.U5TS, {
+			magazine: 1,
+			total: 40,
+			canResupply: false
+		}],
+		[Weapons.PKMT, {
+			magazine: 250,
+			total: 2500,
+			canResupply: false
+		}]
+	];
+	public health: number = 100;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `T-62_${TankT62.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
 
 export class TankT72 extends Unit {
 	public readonly id: string;
@@ -279,7 +334,7 @@ export class TankT72 extends Unit {
 		}],
 		[Weapons.PKMT, {
 			magazine: 250,
-			total: 500,
+			total: 1500,
 			canResupply: false
 		}]
 	];
@@ -321,7 +376,7 @@ export class ArtilleryDANA extends Unit {
 	};
 
 	public visibility = {
-		range: 18700,
+		range: 1000,
 		fieldOfView: Utilities.degreesToRadians(80)
 	};
 	
@@ -342,6 +397,158 @@ export class ArtilleryDANA extends Unit {
 	constructor(location: Vector2, public container: AgentCollection<Unit>) {
 		super();
 		this.id = `DANA_${ArtilleryDANA.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+export class Akatsiya extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.LightArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 18;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.7,
+		forest: 0.2,
+		urban: 0.3
+	};
+
+	public visibility = {
+		range: 1200,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.D22, {
+			magazine: 1,
+			total: 46,
+			canResupply: false
+		}],
+		[Weapons.PKMT, {
+			magazine: 50,
+			total: 1500,
+			canResupply: false
+		}]
+	];
+	public health: number = 100;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `Akatsita_${Akatsiya.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+export class MRLGrad extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.UnarmoredVehicle;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 21;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.5;
+	public movement = {
+		steppe: 0.8,
+		forest: 0.2,
+		urban: 0.3
+	};
+
+	public visibility = {
+		range: 800,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.Grad, {
+			magazine: 40,
+			total: 80,
+			canResupply: false
+		}]
+	];
+	public health: number = 100;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `Grad_${MRLGrad.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+export class ArtilleryD30 extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.UnarmoredVehicle;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 17;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.4;
+	public movement = {
+		steppe: 0.8,
+		forest: 0.1,
+		urban: 0.2
+	};
+
+	public visibility = {
+		range: 1200,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.D30, {
+			magazine: 1,
+			total: 90,
+			canResupply: false
+		}]
+	];
+	public health: number = 100;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `D30_${ArtilleryD30.creationCount++}`;
 		this.location = location;
 		this.fuzzLocation();
 	}
@@ -381,7 +588,7 @@ export class BTR80 extends Unit {
 	
 	public weapons: WeaponAmmunitionPair[] = [
 		[Weapons.KPVT, {
-			magazine: 250,
+			magazine: 50,
 			total: 500,
 			canResupply: false
 		}],
@@ -489,7 +696,7 @@ export class Cobra extends Unit {
 	
 	public weapons: WeaponAmmunitionPair[] = [
 		[Weapons.NSV, {
-			magazine: 250,
+			magazine: 50,
 			total: 500,
 			canResupply: false
 		}]
@@ -539,7 +746,12 @@ export class InfantrySquad extends Unit {
 		[Weapons.AK74, {
 			magazine: 30,
 			total: 180,
-			canResupply: false
+			canResupply: true
+		}]
+		[Weapons.RGD5, {
+			magazine: 1,
+			total: 3,
+			canResupply: true
 		}]
 	];
 	public maxHealth = 100 * this.memberCount;
