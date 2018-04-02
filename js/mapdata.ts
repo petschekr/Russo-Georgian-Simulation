@@ -13,7 +13,7 @@ function directionsUrlFormatter(start: Vector2, end: Vector2, type: Mode = Mode.
 	let coordinates = `${start[0]},${start[1]};${end[0]},${end[1]}`;
 	let mode = type === Mode.Walking ? "walking" : "driving";
 	let overview = full ? "full" : "simplified";
-	return `https://api.mapbox.com/directions/v5/mapbox/${mode}/${encodeURIComponent(coordinates)}.json?access_token=${mapboxgl.accessToken}&geometries=geojson&overview=${overview}`;
+	return `/directions/${mode}/${overview}/${coordinates}`;
 }
 
 export async function getDirections(start: Vector2, end: Vector2, unitType: UnitType): Promise<Vector2[]> {
@@ -25,34 +25,7 @@ export async function getDirections(start: Vector2, end: Vector2, unitType: Unit
 		movementMode = Mode.Driving;
 	}
 
-	return new Promise<Vector2[]>((resolve, reject) => {
-		let xhr = new XMLHttpRequest();
-		xhr.open("GET", directionsUrlFormatter(start, end, movementMode), true);
-		xhr.responseType = "json";
-		xhr.onload = () => {
-			if (xhr.status === 429) {
-				// Too many request -- wait a bit
-				console.warn("Too many requests made to Mapbox! Waiting before retrying");
-				window.setTimeout(async () => {
-					try {
-						resolve(await getDirections(start, end, unitType));
-					}
-					catch (err) {
-						reject(err);
-					}
-				}, 15000);
-				return;
-			}
-			resolve([
-				...xhr.response.routes[0].geometry.coordinates,
-				end // Mapbox sometimes simplifies directions and leaves out actual desired destination
-			]);
-		};
-		xhr.onerror = err => {
-			reject(err);
-		};
-		xhr.send();
-	});
+	return (await fetch(directionsUrlFormatter(start, end, movementMode))).json();
 }
 
 // https://www.mapbox.com/vector-tiles/mapbox-terrain/#landcover

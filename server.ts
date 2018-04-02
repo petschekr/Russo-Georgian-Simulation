@@ -5,6 +5,8 @@ import pbf = require("pbf");
 import * as turf from "@turf/turf";
 const { VectorTile }: { VectorTile: VTileInit } = require("@mapbox/vector-tile");
 
+const MAPBOX_TOKEN = "pk.eyJ1IjoicGV0c2NoZWtyIiwiYSI6ImNqZHY0YWExZDBlM3ozM2xidWMyZnRwMjkifQ.b65yhhfYo08ptlaRmSungw";
+
 process.on("unhandledRejection", reason => {
 	throw reason;
 });
@@ -49,6 +51,22 @@ async function readFileAsync(filename: string): Promise<Buffer> {
 			}
 			resolve(data);
 		});
+	});
+}
+async function writeFileAsync(filename: string, data: string): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		fs.writeFile(filename, data, "utf8", err => {
+			if (err) {
+				reject(err);
+				return;
+			}
+			resolve();
+		});
+	});
+}
+async function wait(milliseconds: number): Promise<void> {
+	return new Promise<void>(resolve => {
+		setTimeout(() => resolve(), milliseconds);
 	});
 }
 
@@ -101,7 +119,7 @@ async function getTiles(topLeft: Vector2, bottomRight: Vector2, zoom: number = 1
 		const fileName = `./tile-cache/terrain-${zoom}-${tile[0]}-${tile[1]}.mvt`;
 		if (fs.existsSync(fileName)) continue;
 
-		const url = `https://a.tiles.mapbox.com/v4/mapbox.mapbox-terrain-v2/${zoom}/${tile[0]}/${tile[1]}.mvt?access_token=pk.eyJ1IjoicGV0c2NoZWtyIiwiYSI6ImNqZHY0YWExZDBlM3ozM2xidWMyZnRwMjkifQ.b65yhhfYo08ptlaRmSungw`
+		const url = `https://a.tiles.mapbox.com/v4/mapbox.mapbox-terrain-v2/${zoom}/${tile[0]}/${tile[1]}.mvt?access_token=${MAPBOX_TOKEN}`
 		let tileResponse = await fetch(url);
 		let data = await tileResponse.buffer();
 		// Cache data to disk
@@ -172,6 +190,48 @@ app.route("/terrain/:coords").get(async (request, response) => {
 		};
 	}));
 	response.send(data);
+});
+
+app.route("/directions/:mode/:type/:coords").get(async (request, response) => {
+	let rawPoints: string[] = request.params.coords.split(";");
+	let end: Vector2 = [0, 0];
+	// Points rounded to 6 decimal places
+	let points = rawPoints.map((pair, i) => {
+		if (i === rawPoints.length - 1) {
+			let xy = pair.split(",");
+			end[0] = parseFloat(xy[0]);
+			end[1] = parseFloat(xy[1]);
+		}
+		return pair.split(",").map(coord => parseFloat(coord).toFixed(6)).join(",");
+	}).join(";");
+
+	const filename = `./directions-cache/directions-${request.params.mode}-${request.params.type}-${points}.json`;
+	try {
+		let data = await readFileAsync(filename);
+		response.type("json").end(data.toString("utf8"));
+	}
+	catch {
+		const url = `https://api.mapbox.com/directions/v5/mapbox/${request.params.mode}/${points}.json?access_token=${MAPBOX_TOKEN}&geometries=geojson&overview=${request.params.type}`;
+		
+		let data = await fetch(url);
+		while (true) {
+			if (data.status !== 429) {
+				break;
+			}
+			// Too many request -- wait a bit
+			console.warn("Too many requests made to Mapbox! Waiting before retrying");
+			await wait(15000);
+			data = await fetch(url);
+		}
+
+		let directions = JSON.stringify([
+			...(await data.json()).routes[0].geometry.coordinates,
+			end // Mapbox sometimes simplifies directions and leaves out actual desired destination
+		]);
+		response.type("json").end(directions);
+		await writeFileAsync(filename, directions);
+	}
+
 });
 
 const PORT = 3001;
