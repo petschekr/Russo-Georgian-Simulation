@@ -1,7 +1,7 @@
 import { UnitType } from "./weapons";
 import { Unit } from "./units";
 import { AgentCollection } from "./collections";
-import { map, dispatcher } from "./main";
+import { map, dispatcher, SouthOssetiaArea, TshkinvaliArea } from "./main";
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
 declare const moment: any;
@@ -367,13 +367,80 @@ export class Dispatcher {
 		}
 	}
 
+	private unitsEngaged = {
+		georgiansInCity: 0,
+		southOssetiansInCity: 0,
+		georgiansInRegion: 0,
+		russiansInRegion: 0,
+	};
+	private completedObjectives = {
+		[Team.Georgia]: false,
+		[Team.Russia]: false,
+		[Team.SouthOssetia]: false,
+	};
+	private readonly output = document.getElementById("output") as HTMLTextAreaElement;
 	public async tick(): Promise<void> {
 		this.time.setSeconds(this.time.getSeconds() + this.secondsPerTick);
 
+		this.unitsEngaged.georgiansInCity = 0;
+		this.unitsEngaged.southOssetiansInCity = 0;
+		this.unitsEngaged.georgiansInRegion = 0;
+		this.unitsEngaged.russiansInRegion = 0;
 		for (let entity of this.entities) {
 			await entity.tick(this.secondsPerTick);
+
+			// Check terminal conditions
+			if (entity instanceof AgentCollection && !entity.eliminated) {
+				if (entity.team === Team.Georgia) {
+					if (turf.booleanPointInPolygon(entity.location, TshkinvaliArea)) {
+						this.unitsEngaged.georgiansInCity++;
+						this.unitsEngaged.georgiansInRegion++; // Implied
+					}
+					else if (turf.booleanPointInPolygon(entity.location, SouthOssetiaArea)) {
+						this.unitsEngaged.georgiansInRegion++;
+					}
+				}
+				else if (entity.team === Team.Russia && turf.booleanPointInPolygon(entity.location, SouthOssetiaArea)) {
+					this.unitsEngaged.russiansInRegion++;
+				}
+				else if (entity.team === Team.SouthOssetia && turf.booleanPointInPolygon(entity.location, TshkinvaliArea)) {
+					this.unitsEngaged.southOssetiansInCity++;
+				}
+			}
 		}
+		if (this.unitsEngaged.georgiansInCity === 0) {
+			if (!this.completedObjectives[Team.SouthOssetia]) {
+				this.output.value += `Tick ${this.tickCount}: South Ossetian objective completed (${this.unitsEngaged.southOssetiansInCity} South Ossetians in Tshkinvali)\n`;
+				this.completedObjectives[Team.SouthOssetia] = true;
+			}
+		}
+		else {
+			this.completedObjectives[Team.SouthOssetia] = false;
+		}
+		
+		if (this.unitsEngaged.georgiansInRegion === 0) {
+			if (!this.completedObjectives[Team.Russia]) {
+				this.output.value += `Tick ${this.tickCount}: Russian objective completed (${this.unitsEngaged.russiansInRegion} Russians in region)\n`;
+				this.completedObjectives[Team.Russia] = true;
+			}
+		}
+		else {
+			this.completedObjectives[Team.Russia] = false;
+		}
+		
+		if (this.unitsEngaged.russiansInRegion === 0) {
+			if (!this.completedObjectives[Team.Georgia]) {
+				this.output.value += `Tick ${this.tickCount}: Georgian objective completed (${this.unitsEngaged.georgiansInRegion} Georgians in region)\n`;
+				this.completedObjectives[Team.Georgia] = true;
+			}
+		}
+		else {
+			this.completedObjectives[Team.Georgia] = false;
+		}
+		
 		// Could be moved up into for loop if you want to see visualization after each collection tick
 		this.paint();
+
+		this.tickCount++;
 	}
 }

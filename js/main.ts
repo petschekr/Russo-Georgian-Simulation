@@ -29,7 +29,7 @@ export const map = new mapboxgl.Map({
 	bearingSnap: 20
 });
 
-const SouthOssetia: _turf.Feature<_turf.Polygon> = {
+export const SouthOssetiaArea: _turf.Feature<_turf.Polygon> = {
 	"type": "Feature",
 	"properties": {},
 	"geometry": {
@@ -276,7 +276,7 @@ const SouthOssetia: _turf.Feature<_turf.Polygon> = {
 		]
 	}
 };
-const TshkinvaliArea: _turf.Feature<_turf.Polygon> = {
+export const TshkinvaliArea: _turf.Feature<_turf.Polygon> = {
 	"type": "Feature",
 	"properties": {},
 	"geometry": {
@@ -784,6 +784,7 @@ async function start() {
 	let units: Entity[];
 
 	const timeElement = document.getElementById("time")!;
+	const outputArea = document.getElementById("output") as HTMLTextAreaElement;
 
 	const scenarioSlider = document.getElementById("scenario") as HTMLInputElement;
 	const scenarioValue = document.getElementById("scenario-value") as HTMLSpanElement;
@@ -809,6 +810,7 @@ async function start() {
 		console.info(`Initialized with ${units.length.toLocaleString()} collections and ${unitCount.toLocaleString()} units`);
 		dispatcher = new Dispatcher(startDate, units);
 		timeElement.textContent = dispatcher.formattedTime;
+		outputArea.value = "";
 	}
 	scenarioSlider.addEventListener("input", () => {
 		scenarioPercentage = parseFloat(scenarioSlider.value);
