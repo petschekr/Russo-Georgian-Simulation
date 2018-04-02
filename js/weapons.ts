@@ -147,7 +147,7 @@ export namespace Weapons {
 			[UnitType.LightArmor, 1],
 			[UnitType.HeavyArmor, 0.2]
 		]),
-		fireRate: 600,
+		fireRate: 240,
 		accuracy: 0.3,
 		terminalEffect: 0
 	}
@@ -160,7 +160,7 @@ export namespace Weapons {
 			[UnitType.LightArmor, 2],
 			[UnitType.HeavyArmor, 0.3]
 		]),
-		fireRate: 750,
+		fireRate: 300,
 		accuracy: 0.4,
 		terminalEffect: 0
 	}
@@ -173,7 +173,7 @@ export namespace Weapons {
 			[UnitType.LightArmor, 2],
 			[UnitType.HeavyArmor, 0.3]
 		]),
-		fireRate: 600,
+		fireRate: 240,
 		accuracy: 0.4,
 		terminalEffect: 0
 	}
@@ -186,7 +186,7 @@ export namespace Weapons {
 			[UnitType.LightArmor, 2.5],
 			[UnitType.HeavyArmor, 0.4]
 		]),
-		fireRate: 600,
+		fireRate: 240,
 		accuracy: 0.5,
 		terminalEffect: 0
 	}
@@ -199,7 +199,7 @@ export namespace Weapons {
 			[UnitType.LightArmor, 10],
 			[UnitType.HeavyArmor, 2.5]
 		]),
-		fireRate: 550,
+		fireRate: 220,
 		accuracy: 0.6,
 		terminalEffect: 3
 	}
@@ -212,7 +212,7 @@ export namespace Weapons {
 			[UnitType.LightArmor, 1],
 			[UnitType.HeavyArmor, 0.2]
 		]),
-		fireRate: 750,
+		fireRate: 250,
 		accuracy: 0.4,
 		terminalEffect: 0
 	}
