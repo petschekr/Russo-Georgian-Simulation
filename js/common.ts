@@ -55,6 +55,11 @@ export class Utilities {
 	static fastDistance(location1: Vector2, location2: Vector2): number { // Returns in meters
 		return turf.distance(location1, location2, { units: "meters" });
 	}
+	static weaponAtRangeScale(distance: number, range: number): number {
+		if (distance > range) return 0;
+		// Linear scale from 1 (at 0 distance) to 0.5 (at max distance)
+		return ((-1 + 0.5) / range) * distance + 1;
+	}
 }
 
 // >"Team"

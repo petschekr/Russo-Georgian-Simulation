@@ -116,26 +116,30 @@ export abstract class Unit implements Entity {
 		let distanceToTarget = turf.distance(this.location, collection.location, { units: "meters" });
 
 		let bestWeapon: WeaponAmmunitionPair | undefined;
-		let bestWeaponDamagePerTick: number = 0;
 		for (let weapon of this.weapons) {
 			// Disqualifiers
 			if (distanceToTarget > weapon[0].range || weapon[1].total <= 0) continue;
 
-			let damagePerShot = weapon[0].efficacy.get(collection.type) || 0;
-			let damage = damagePerShot * weapon[0].fireRate / 60 * secondsElapsed * Math.min(1, weapon[1].total / weapon[0].fireRate);
-			if (damage > bestWeaponDamagePerTick) {
+			let firepower = weapon[0].efficacy.get(collection.type) || 0;
+			let bestFirepower = bestWeapon ? bestWeapon[0].efficacy.get(collection.type) || 0 : 0;
+
+			if (!bestWeapon && firepower > 0) {
 				bestWeapon = weapon;
-				bestWeaponDamagePerTick = damage;
+			}
+			else if (bestWeapon && firepower >= bestFirepower && weapon[0].fireRate >= bestWeapon[0].fireRate && weapon[0].accuracy >= bestWeapon[0].accuracy) {
+				bestWeapon = weapon;
 			}
 		}
+		// Probably should retreat if no weapons are suitable
 		if (!bestWeapon) return;
 
 		let damage = 0;
-		for (let shot = 0; shot < Math.min(bestWeapon[0].fireRate / 60 * secondsElapsed * this.actingAs, bestWeapon[1].total); shot++) {
+		for (let shot = 0; shot < bestWeapon[0].fireRate / 60 * secondsElapsed * (this.actingAs * this.health / this.maxHealth); shot++) {
 			if (Math.random() < bestWeapon[0].accuracy) {
-				damage += (bestWeapon[0].efficacy.get(collection.type) || 0) * ((bestWeapon[0].range - distanceToTarget) / bestWeapon[0].range);
+				let firepower = bestWeapon[0].efficacy.get(collection.type) || 0;
+				damage += firepower / bestWeapon[0].fireRate * Utilities.weaponAtRangeScale(distanceToTarget, bestWeapon[0].range);
 			}
-			bestWeapon[1].total--;
+			// bestWeapon[1].total--;
 		}
 		console.log(`Applying ${damage} damage with ${bestWeapon[0].name}`);
 		if (collection.damage(this.container, damage)) {
