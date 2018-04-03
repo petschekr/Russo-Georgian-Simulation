@@ -369,8 +369,10 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 	const Dmenisi: Waypoint = { location: [44.067708, 42.271014] };
 	const Sarabuki: Waypoint = { location: [44.0339178, 42.2698956] };
 	const PrisiHeights: Waypoint = { location: [44.005045, 42.264837] };
-	// valley north of Tskhinvali containing various Georgian enclaves
-	const BolshoyLiakhvi: Waypoint = { location: [43.956440, 42.277728] };
+	// various Georgian villages north of Tskhinvali in Bolshoy Liakhvi gorge
+	const Achabeti: Waypoint = { location: [43.956440, 42.277728] };
+	const Kekhvi: Waypoint = { location: [43.939403, 42.303673] };
+	const Kemerti: Waypoint = { location: [43.937610, 42.318309] };
 
 	return [
 		/**GEORGIA**/
@@ -379,74 +381,74 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		new MountedInfantryBattalion([43.884382, 42.146868], 16, [
 			Khetagurovi,
 			Dzari,
-			Tskhinvali
+			(interdictPercentage >= 50) ? RokiTunnel : Tskhinvali
 		], "41st Light Infantry Battalion", Team.Georgia),
 		new MountedInfantryBattalion([43.884382, 42.146868], 16, [
 			Khetagurovi,
 			Dzari,
-			Tskhinvali
+			(interdictPercentage >= 55) ? RokiTunnel : Tskhinvali
 		], "42nd Light Infantry Battalion", Team.Georgia),
 		new MountedInfantryBattalion([43.877702, 42.144644], 16, [
 			Znauri,
 			Dzari,
-			Tskhinvali
+			(interdictPercentage >= 60) ? RokiTunnel : Tskhinvali
 		], "43rd Light Infantry Battalion", Team.Georgia),
 		new BTR80Battalion([43.884382, 42.146868], 8, [
 			Khetagurovi,
 			Dzari,
-			Tskhinvali
+			(interdictPercentage >= 45) ? RokiTunnel : Tskhinvali
 		], "4th Reconnaissance Company BTRs", Team.Georgia),
 		new BMP2Battalion([43.884382, 42.146868], 15, [
 			Khetagurovi,
 			Dzari,
-			Tskhinvali
+			(interdictPercentage >= 40) ? RokiTunnel : Tskhinvali
 		], "44th Armored Battalion BMPs", Team.Georgia),
 		new T72Battalion([43.884382, 42.146868], 30, [
 			Khetagurovi,
 			Dzari,
-			Tskhinvali
+			(interdictPercentage >= 40) ? RokiTunnel : Tskhinvali
 		], "44th Armored Battalion", Team.Georgia),
 		new D30Battalion([43.884382, 42.146868], 18, [
 			Khetagurovi,
 			Dzari,
-			Tskhinvali
+			(interdictPercentage >= 45) ? RokiTunnel : Tskhinvali
 		], "45th Artillery Battalion", Team.Georgia),
 
 		/**East**/
 		new MountedInfantryBattalion([44.076805, 42.224923], 16, [
 			PrisiHeights,
-			BolshoyLiakhvi,
-			Tskhinvali
+			Achabeti,
+			(interdictPercentage >= 35) ? RokiTunnel : Tskhinvali
 		], "31st Light Infantry Battalion", Team.Georgia),
 		new MountedInfantryBattalion([44.076805, 42.224923], 16, [
 			Sarabuki,
-			BolshoyLiakhvi,
-			Tskhinvali
+			Kekhvi,
+			(interdictPercentage >= 30) ? RokiTunnel : Tskhinvali
 		], "32nd Light Infantry Battalion", Team.Georgia),
 		new MountedInfantryBattalion([44.076805, 42.224923], 16, [
 			Dmenisi,
-			BolshoyLiakhvi,
-			Tskhinvali
+			Kemerti,
+			(interdictPercentage >= 25) ? RokiTunnel : Tskhinvali
 		], "33rd Light Infantry Battalion", Team.Georgia),
 		new BTR80Battalion([44.076805, 42.224923], 8, [
 			Sarabuki,
-			BolshoyLiakhvi,
-			Tskhinvali
+			Kekhvi,
+			(interdictPercentage >= 20) ? RokiTunnel : Tskhinvali
 		], "3rd Reconnaissance Company BTRs", Team.Georgia),
 		new BMP2Battalion([44.076805, 42.224923], 15, [
 			Dmenisi,
-			BolshoyLiakhvi,
-			Tskhinvali
+			Kemerti,
+			(interdictPercentage >= 15) ? RokiTunnel : Tskhinvali
 		], "34th Armored Battalion BMPs", Team.Georgia),
 		new T72Battalion([44.076805, 42.224923], 30, [
 			PrisiHeights,
-			BolshoyLiakhvi,
-			Tskhinvali
+			Achabeti,
+			(interdictPercentage >= 15) ? RokiTunnel : Tskhinvali
 		], "34th Armored Battalion", Team.Georgia),
 		new D30Battalion([44.076805, 42.224923], 18, [
 			PrisiHeights,
-			BolshoyLiakhvi,
-			Tskhinvali
+			Achabeti,
+			(interdictPercentage >= 20) ? RokiTunnel : Tskhinvali
 		], "35th Artillery Battalion", Team.Georgia),
 
 		/**Center**/
@@ -457,41 +459,52 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			Tskhinvali
 		], "Interior Ministry special task force Cobras", Team.Georgia),
 		new MountedInfantryBattalion([43.955202, 42.165578], 8, [
-			Tskhinvali
+			Tskhinvali,
+			(interdictPercentage >= 90) ? RokiTunnel : Tskhinvali
 		], "Georgian Special Operations Group", Team.Georgia),
 		new InfantryBattalion([43.969603, 42.155248], 16, [
-			Tskhinvali
+			Tskhinvali,
+			(interdictPercentage >= 100) ? RokiTunnel : Tskhinvali
 		], "Independent Light Infantry Battalion", Team.Georgia),
 		new T72Battalion([43.943252, 42.165528], 15, [
-			Tskhinvali
+			Tskhinvali,
+			(interdictPercentage >= 65) ? RokiTunnel : Tskhinvali
 		], "Independent Combined Tank Battalion", Team.Georgia),
 
 		/**Reserve**/
 		new InfantryBattalion([44.068055, 42.159849], 16, [
 			Dmenisi,
-			BolshoyLiakhvi
+			Achabeti,
+			(interdictPercentage >= 85) ? RokiTunnel : Tskhinvali
 		], "53rd Light Infantry Battalion", Team.Georgia),
 
 		new D30Battalion([43.955202, 42.165578], 18, [
+			(interdictPercentage >= 80) ? RokiTunnel : Tskhinvali
 		], "15th Artillery Battalion", Team.Georgia),
 		new DANABattalion([43.996816, 42.157214], 30, [
+			(interdictPercentage >= 75) ? RokiTunnel : Tskhinvali
 		], "Self-Propelled Artillery Battalion", Team.Georgia),
 		new MRLBattalion([44.040621, 42.173988], 30, [
+			(interdictPercentage >= 70) ? RokiTunnel : Tskhinvali
 		], "MRL Battalion", Team.Georgia),
 
 		/**Peacekeepers**/
 		new InfantryBattalion([43.99526596069336, 42.196095951813454], 16, [
+			(interdictPercentage >= 95) ? RokiTunnel : Tskhinvali
 		], "11th Light Infantry Battalion", Team.Georgia),
 		new BMP2Battalion([43.99526596069336, 42.196095951813454], 15, [
+			(interdictPercentage >= 65) ? RokiTunnel : Tskhinvali
 		], "Independent Combined Tank Battalion BMPs", Team.Georgia),
 
 		/**Far West**/
 		new InfantryBattalion([43.597354888916016, 42.5045977676146], 16, [
 			Kvaisi,
-			Java
+			Java,
+			(interdictPercentage >= 5) ? RokiTunnel : Tskhinvali
 		], "Interior Ministry CSD Combined Battalion", Team.Georgia),
 		new InfantryBattalion([43.59769821166992, 42.36133451106724], 16, [
-			Java
+			Java,
+			(interdictPercentage >= 10) ? RokiTunnel : Tskhinvali
 		], "Independent Combined Mountain Rifle Battalion", Team.Georgia),
 
 		/**Far East**/
@@ -558,17 +571,17 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		new MountedInfantryBattalion([43.839789, 42.662262], 16, [
 			RokiTunnel,
 			Java,
-			BolshoyLiakhvi
+			Achabeti
 		], "135th MR 1st Battalion", Team.Russia),
 		new BMP2Battalion([43.839789, 42.662262], 45, [
 			RokiTunnel,
 			Java,
-			BolshoyLiakhvi
+			Achabeti
 		], "135th MR 1st Battalion BMPs", Team.Russia),
 		new BTR80Battalion([43.839789, 42.662262], 10, [
 			RokiTunnel,
 			Java,
-			BolshoyLiakhvi
+			Achabeti
 		], "135th MR Reconnaissance Company", Team.Russia),
 
 		new MountedInfantryBattalion([43.839789, 42.662262], 16, [
@@ -819,19 +832,19 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 
 		new InfantryBattalion([44.601775, 43.195225], 12, [
 			RokiTunnel,
-			BolshoyLiakhvi
+			Achabeti
 		], "104th Air Assault", Team.Russia),
 		new BMP2Battalion([44.601775, 43.195225], 20, [
 			RokiTunnel,
-			BolshoyLiakhvi
+			Achabeti
 		], "104th Air Assault BMDs", Team.Russia),
 		new InfantryBattalion([44.601775, 43.195225], 12, [
 			RokiTunnel,
-			BolshoyLiakhvi
+			Achabeti
 		], "234th Air Assault", Team.Russia),
 		new BMP2Battalion([44.601775, 43.195225], 20, [
 			RokiTunnel,
-			BolshoyLiakhvi
+			Achabeti
 		], "234th Air Assault BMDs", Team.Russia),
 
 		/**SOUTH OSSETIA**/
