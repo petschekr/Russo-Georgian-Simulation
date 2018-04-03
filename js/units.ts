@@ -131,10 +131,11 @@ export abstract class Unit implements Entity {
 		if (!bestWeapon) return;
 
 		let damage = 0;
-		for (let shot = 0; shot < Math.min(bestWeapon[0].fireRate / 60 * secondsElapsed * this.actingAs, bestWeapon[1].total); shot++, bestWeapon[1].total--) {
+		for (let shot = 0; shot < Math.min(bestWeapon[0].fireRate / 60 * secondsElapsed * this.actingAs, bestWeapon[1].total); shot++) {
 			if (Math.random() < bestWeapon[0].accuracy) {
 				damage += (bestWeapon[0].efficacy.get(collection.type) || 0) * ((bestWeapon[0].range - distanceToTarget) / bestWeapon[0].range);
 			}
+			bestWeapon[1].total--;
 		}
 		console.log(`Applying ${damage} damage with ${bestWeapon[0].name}`);
 		if (collection.damage(this.container, damage)) {
@@ -759,8 +760,13 @@ export class InfantrySquad extends Unit {
 		}],
 		[Weapons.RGD5, {
 			magazine: 1,
-			total: 3,
+			total: 10,
 			canResupply: true
+		}],
+		[Weapons.RPG, {
+			magazine: 1,
+			total: 5,
+			canResupply: false
 		}]
 	];
 	public maxHealth = 100 * this.memberCount;
@@ -786,7 +792,7 @@ export class MountedInfantrySquad extends InfantrySquad {
 	public maxClimbAbility = 0.6;
 
 	public readonly maxWalkingSpeed = 1.34; // 3 miles per hour
-	public readonly maxDrivingSpeed = 26; // 58 miles per hour
+	public readonly maxDrivingSpeed = 17.8; // 40 miles per hour
 	public get maxSpeed(): number {
 		if (this.container.type === UnitType.Infantry) {
 			return this.maxWalkingSpeed;
