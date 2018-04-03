@@ -786,7 +786,7 @@ export class MountedInfantrySquad extends InfantrySquad {
 	public maxClimbAbility = 0.6;
 
 	public readonly maxWalkingSpeed = 1.34; // 3 miles per hour
-	public readonly maxDrivingSpeed = 17.8; // 40 miles per hour
+	public readonly maxDrivingSpeed = 26; // 58 miles per hour
 	public get maxSpeed(): number {
 		if (this.container.type === UnitType.Infantry) {
 			return this.maxWalkingSpeed;

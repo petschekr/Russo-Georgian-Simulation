@@ -474,7 +474,6 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		/**Reserve**/
 		new InfantryBattalion([44.068055, 42.159849], 16, [
 			Dmenisi,
-			Achabeti,
 			(interdictPercentage >= 85) ? RokiTunnel : Tskhinvali
 		], "53rd Light Infantry Battalion", Team.Georgia),
 
@@ -497,12 +496,12 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		], "Independent Combined Tank Battalion BMPs", Team.Georgia),
 
 		/**Far West**/
-		new InfantryBattalion([43.597354888916016, 42.5045977676146], 16, [
+		new MountedInfantryBattalion([43.597354888916016, 42.5045977676146], 16, [
 			Kvaisi,
 			Java,
 			(interdictPercentage >= 5) ? RokiTunnel : Tskhinvali
 		], "Interior Ministry CSD Combined Battalion", Team.Georgia),
-		new InfantryBattalion([43.59769821166992, 42.36133451106724], 16, [
+		new MountedInfantryBattalion([43.59769821166992, 42.36133451106724], 16, [
 			Java,
 			(interdictPercentage >= 10) ? RokiTunnel : Tskhinvali
 		], "Independent Combined Mountain Rifle Battalion", Team.Georgia),
@@ -513,13 +512,13 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		], "Interior Ministry special task forces 2", Team.Georgia),
 
 		/**Reinforcements from Abkhazia**/
-		new InfantryBattalion([42.049641, 42.256798], 16, [
+		new MountedInfantryBattalion([42.049641, 42.256798], 16, [
 			Tskhinvali
 		], "21st Light Infantry Battalion", Team.Georgia),
-		new InfantryBattalion([42.049641, 42.256798], 16, [
+		new MountedInfantryBattalion([42.049641, 42.256798], 16, [
 			Tskhinvali
 		], "22nd Light Infantry Battalion", Team.Georgia),
-		new InfantryBattalion([42.049641, 42.256798], 16, [
+		new MountedInfantryBattalion([42.049641, 42.256798], 16, [
 			Tskhinvali
 		], "23rd Light Infantry Battalion", Team.Georgia),
 		new BTR80Battalion([42.049641, 42.256798], 8, [
@@ -830,7 +829,7 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			Tskhinvali
 		], "45th Indepdendent Recon Spetsnaz Regiment", Team.Russia),
 
-		new InfantryBattalion([44.601775, 43.195225], 12, [
+		new MountedInfantryBattalion([44.601775, 43.195225], 12, [
 			RokiTunnel,
 			Achabeti
 		], "104th Air Assault", Team.Russia),
@@ -838,7 +837,7 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			RokiTunnel,
 			Achabeti
 		], "104th Air Assault BMDs", Team.Russia),
-		new InfantryBattalion([44.601775, 43.195225], 12, [
+		new MountedInfantryBattalion([44.601775, 43.195225], 12, [
 			RokiTunnel,
 			Achabeti
 		], "234th Air Assault", Team.Russia),
