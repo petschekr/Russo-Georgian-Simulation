@@ -159,7 +159,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		}
 		if (this.eliminated) return;
 
-		if (this.waypoints[0] && this.unitsFinishedNavigating && this.engagingCollection === null) {
+		if (this.waypoints[0] && this.unitsFinishedNavigating) {
 			// Destination reached (all units no longer traveling)
 			this.waypoints.shift();
 			this.unitsFinishedNavigating = false;
@@ -206,9 +206,6 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			unit.tick(secondsElapsed);
 		}
 		this.unitsFinishedNavigating = this.units.length === finishedNavigation;
-		if (this.unitsFinishedNavigating) {
-			this.retreating = false;
-		}
 		// Disabled for performance concerns
 		//this.visibilityArea = turf.union(...unitVisibilties);
 		this.visibilityArea = turf.circle(this.location, this.maxVisibilityRange, { units: "meters" });
@@ -224,6 +221,9 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 				this.id,
 				turf.lineString([this.location, ...this.waypoints.map(waypoint => waypoint.location)])
 			);
+		}
+		else {
+			dispatcher.layerData.get(this.team)!.waypoints.delete(this.id);
 		}
 		dispatcher.layerData.get(this.team)!.visibility.set(this.id, this.visibilityArea);
 	}
@@ -261,6 +261,15 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	private async prepareCombat(): Promise<void> {
+		if (this.retreating && !this.engagingCollection) {
+			this.retreating = false;
+		}
+		if (this.retreating && !turf.booleanPointInPolygon(this.location, this.engagingCollection!.visibilityArea)) {
+			this.retreating = false;
+			this.engagingCollection = null;
+		}
+		if (this.retreating) return;
+
 		const detectionThreshold = 0.7;
 		const spreadDistance = 300; // meters
 		const recalculateDistance = 200; // meters;
@@ -354,18 +363,25 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			this.engagingCollection = null;
 			return;
 		}
-		console.log("Engaging:", this.engagingCollection.id);
-
-		if (!this.retreating) {
-			for (let unit of this.units) {
-				unit.engage(this.engagingCollection, secondsElapsed);
-			}
-		}
-
+		if (this.retreating) return;
 		// Retreat if bad odds
 		if (AgentCollection.areBadOdds(this, this.engagingCollection) && !this.retreating) {
 			console.warn(`Retreating due to bad odds: ${this.id}`);
+			this.retreating = true;
+		}
 			
+		if (!this.retreating) {
+			console.log("Engaging:", this.engagingCollection.id);
+			for (let unit of this.units) {
+				let engageSuccess = unit.engage(this.engagingCollection, secondsElapsed);
+				if (!engageSuccess) {
+					this.retreating = true;
+					console.warn(`Retreating because under fire but no way to strike back: ${this.id}`);
+				}
+			}
+		}
+
+		if (this.retreating) {
 			let detectionRange = this.engagingCollection.maxVisibilityRange;
 			let bearingThemToMe = turf.bearing(this.engagingCollection.location, this.location);
 
@@ -389,6 +405,10 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 					}
 				}
 			}
+			// Don't take a longer route after remapping
+			if (this.waypoints.length >= 2 && Utilities.fastDistance(this.location, this.waypoints[0].location) > Utilities.fastDistance(this.location, this.waypoints[1].location)) {
+				this.waypoints.shift();
+			}
 			// if (this.waypoints[0]) {
 			// 	let bearingThemToDest = turf.bearing(this.engagingCollection.location, this.waypoints[0].location);
 			// 	let around = turf.lineArc(this.engagingCollection.location, detectionRange * 1.25 / 1000, bearingThemToMe, bearingThemToDest);
@@ -402,8 +422,6 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			
 			this.navigating = false;
 			this.navigationCalculated = false;
-			
-			this.retreating = true;
 		}
 	}
 

@@ -111,7 +111,7 @@ export abstract class Unit implements Entity {
 	}
 
 	public isEngaging: boolean = false;
-	public engage(collection: AgentCollection<Unit>, secondsElapsed: number): void {
+	public engage(collection: AgentCollection<Unit>, secondsElapsed: number): boolean {
 		// Find best weapon to engage with
 		let distanceToTarget = turf.distance(this.location, collection.location, { units: "meters" });
 
@@ -131,7 +131,7 @@ export abstract class Unit implements Entity {
 			}
 		}
 		// Probably should retreat if no weapons are suitable
-		if (!bestWeapon) return;
+		if (!bestWeapon) return false;
 
 		let damage = 0;
 		for (let shot = 0; shot < bestWeapon[0].fireRate / 60 * secondsElapsed * (this.actingAs * this.health / this.maxHealth); shot++) {
@@ -146,6 +146,7 @@ export abstract class Unit implements Entity {
 			// Target destroyed
 			this.isEngaging = false;
 		}
+		return true;
 	}
 
 	public abstract setSpeedForTerrain(grade: number, terrain: LandCover): void;
