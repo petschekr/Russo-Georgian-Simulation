@@ -135,7 +135,7 @@ async function getTiles(topLeft: Vector2, bottomRight: Vector2, zoom: number = 1
 
 }
 // Bounding box of South Ossetia
-getTiles([43.49349975585937, 42.687482878665385], [44.520721435546875, 41.92578147109541]);
+getTiles([41.739886,43.995837], [46.127184,41.844546]);
 app.route("/terrain/:coords").get(async (request, response) => {
 	const zoom = 14;
 

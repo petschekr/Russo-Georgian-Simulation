@@ -344,7 +344,7 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			], "135 Motorized Rifle Regiment", Team.Russia)
 		];
 	}
-	
+
 	// South Ossetian capital city center
 	const Tskhinvali: Waypoint = { location: [43.964393, 42.221488] };
 	// village southwest of Tskhinvali
@@ -386,7 +386,7 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			Dzari,
 			Tskhinvali
 		], "42nd Light Infantry Battalion", Team.Georgia),
-		new MountedInfantryBattalion([43.877702,42.144644], 16, [
+		new MountedInfantryBattalion([43.877702, 42.144644], 16, [
 			Znauri,
 			Dzari,
 			Tskhinvali
@@ -411,7 +411,7 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			Dzari,
 			Tskhinvali
 		], "45th Artillery Battalion", Team.Georgia),
-		
+
 		/**East**/
 		new MountedInfantryBattalion([44.076805, 42.224923], 16, [
 			PrisiHeights,
@@ -444,7 +444,7 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			Tskhinvali
 		], "34th Armored Battalion", Team.Georgia),
 		new D30Battalion([44.076805, 42.224923], 18, [
-		 	PrisiHeights,
+			PrisiHeights,
 			BolshoyLiakhvi,
 			Tskhinvali
 		], "35th Artillery Battalion", Team.Georgia),
@@ -471,41 +471,39 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			Dmenisi,
 			BolshoyLiakhvi
 		], "53rd Light Infantry Battalion", Team.Georgia),
-		
+
 		new D30Battalion([43.955202, 42.165578], 18, [
 		], "15th Artillery Battalion", Team.Georgia),
 		new DANABattalion([43.996816, 42.157214], 30, [
 		], "Self-Propelled Artillery Battalion", Team.Georgia),
 		new MRLBattalion([44.040621, 42.173988], 30, [
 		], "MRL Battalion", Team.Georgia),
-		
+
 		/**Peacekeepers**/
 		new InfantryBattalion([43.99526596069336, 42.196095951813454], 16, [
 		], "11th Light Infantry Battalion", Team.Georgia),
 		new BMP2Battalion([43.99526596069336, 42.196095951813454], 15, [
 		], "Independent Combined Tank Battalion BMPs", Team.Georgia),
-		
+
 		/**Far West**/
 		new InfantryBattalion([43.597354888916016, 42.5045977676146], 16, [
 			Kvaisi,
-			Java,
-			RokiTunnel
+			Java
 		], "Interior Ministry CSD Combined Battalion", Team.Georgia),
 		new InfantryBattalion([43.59769821166992, 42.36133451106724], 16, [
-			Java,
-			RokiTunnel
+			Java
 		], "Independent Combined Mountain Rifle Battalion", Team.Georgia),
 
 		/**Far East**/
-		new InfantryBattalion([43.597354888916016, 42.5045977676146], 20, [
+		new InfantryBattalion([44.489631, 42.012926], 20, [
 			Akhalgori
 		], "Interior Ministry special task forces 2", Team.Georgia),
-		
+
 		/**Reinforcements from Abkhazia**/
 		new InfantryBattalion([42.049641, 42.256798], 16, [
 			Tskhinvali
 		], "21st Light Infantry Battalion", Team.Georgia),
-		new InfantryBattalion([442.049641, 42.256798], 16, [
+		new InfantryBattalion([42.049641, 42.256798], 16, [
 			Tskhinvali
 		], "22nd Light Infantry Battalion", Team.Georgia),
 		new InfantryBattalion([42.049641, 42.256798], 16, [
@@ -523,191 +521,191 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		new D30Battalion([42.049641, 42.256798], 18, [
 			Tskhinvali
 		], "25th Artillery Battalion", Team.Georgia),
-		
+
 		/**RUSSIA**/
-		
+
 		/**Peacekeepers, southern compound**/
-		new InfantryBattalion([43.956153,42.209031], 8, [
+		new InfantryBattalion([43.956153, 42.209031], 8, [
 		], "135th MR 2nd Battalion 1", Team.Russia),
-		new BMP2Battalion([43.956153,42.209031], 15, [
+		new BMP2Battalion([43.956153, 42.209031], 15, [
 		], "135th MR 2nd Battalion BMPs 1", Team.Russia),
-		
-		new BTR80Battalion([43.956153,42.209031], 10, [
+
+		new BTR80Battalion([43.956153, 42.209031], 10, [
 		], "10th Indepdendent Spetsnaz Brigade Reconnaissance Company", Team.Russia),
-		new InfantryBattalion([43.956153,42.209031], 4, [
+		new InfantryBattalion([43.956153, 42.209031], 4, [
 		], "22nd Indepdendent Spetsnaz Brigade", Team.Russia),
-		
-		new InfantryBattalion([43.956153,42.209031], 8, [
+
+		new InfantryBattalion([43.956153, 42.209031], 8, [
 		], "North Ossetian Alaniya Battalion 1", Team.Russia),
-		new BMP2Battalion([43.956153,42.209031], 8, [
+		new BMP2Battalion([43.956153, 42.209031], 8, [
 		], "North Ossetian Alaniya Battalion BMPs 1", Team.Russia),
-		
+
 		/**Peacekeepers, northern compound**/
-		new InfantryBattalion([43.958890,42.234057], 8, [
+		new InfantryBattalion([43.958890, 42.234057], 8, [
 		], "135th MR 2nd Battalion 2", Team.Russia),
-		new BMP2Battalion([43.958890,42.234057], 30, [
+		new BMP2Battalion([43.958890, 42.234057], 30, [
 		], "135th MR 2nd Battalion BMPs 2", Team.Russia),
-		
-		new InfantryBattalion([43.958890,42.234057], 4, [
+
+		new InfantryBattalion([43.958890, 42.234057], 4, [
 		], "10th Indepdendent Spetsnaz Brigade 1", Team.Russia),
-		
-		new InfantryBattalion([43.958890,42.234057], 8, [
+
+		new InfantryBattalion([43.958890, 42.234057], 8, [
 		], "North Ossetian Alaniya Battalion 2", Team.Russia),
-		new BMP2Battalion([43.958890,42.234057], 8, [
+		new BMP2Battalion([43.958890, 42.234057], 8, [
 		], "North Ossetian Alaniya Battalion BMPs 2", Team.Russia),
-		
+
 		/**Initial QRF, primary training range**/
-		new MountedInfantryBattalion([44.095187, 42.619808], 16, [
+		new MountedInfantryBattalion([43.839789, 42.662262], 16, [
 			RokiTunnel,
 			Java,
 			BolshoyLiakhvi
 		], "135th MR 1st Battalion", Team.Russia),
-		new BMP2Battalion([44.095247, 42.619793], 45, [
+		new BMP2Battalion([43.839789, 42.662262], 45, [
 			RokiTunnel,
 			Java,
 			BolshoyLiakhvi
 		], "135th MR 1st Battalion BMPs", Team.Russia),
-		new BTR80Battalion([44.095247, 42.619793], 10, [
+		new BTR80Battalion([43.839789, 42.662262], 10, [
 			RokiTunnel,
 			Java,
 			BolshoyLiakhvi
 		], "135th MR Reconnaissance Company", Team.Russia),
-		
-		new MountedInfantryBattalion([44.095098, 42.619851], 16, [
+
+		new MountedInfantryBattalion([43.839789, 42.662262], 16, [
 			RokiTunnel,
 			Java
 		], "693rd MR 1st Battalion", Team.Russia),
-		new BMP2Battalion([44.095098, 42.619851], 45, [
+		new BMP2Battalion([43.839789, 42.662262], 45, [
 			RokiTunnel,
 			Java
 		], "693rd MR 1st Battalion BMPs", Team.Russia),
-		new BTR80Battalion([44.095098, 42.619851], 10, [
+		new BTR80Battalion([43.839789, 42.662262], 10, [
 			RokiTunnel
 		], "693rd MR Reconnaissance Company", Team.Russia),
-		
-		new T72Battalion([44.095098, 42.619851], 14, [
+
+		new T72Battalion([43.839789, 42.662262], 14, [
 			RokiTunnel,
 			Java,
-			DidiGupta			
+			DidiGupta
 		], "QRF Tank Battalion", Team.Russia),
-		new AkatsiyaBattalion([44.095098, 42.619851], 16, [
+		new AkatsiyaBattalion([43.839789, 42.662262], 16, [
 			RokiTunnel,
 			Java,
-			DidiGupta			
+			DidiGupta
 		], "QRF Artillery Battalion", Team.Russia),
-		
+
 		/**Initial QRF, secondary training range**/
-		new MRLBattalion([44.095098, 42.619851], 9, [
+		new MRLBattalion([44.122782, 42.642049], 9, [
 			RokiTunnel,
 			Java,
 			DidiGupta
 		], "QRF MRL Battalion", Team.Russia),
-		
+
 		/**19th MR Division**/
 		//stationed in Troitskoye
-		new MountedInfantryBattalion([44.619771,43.765389], 16, [
+		new MountedInfantryBattalion([44.619771, 43.765389], 16, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "503rd MR 1st Battalion", Team.Russia),
-		new BMP2Battalion([44.619771,43.765389], 45, [
+		new BMP2Battalion([44.619771, 43.765389], 45, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "503rd MR 1st Battalion BMPs", Team.Russia),
-		new MountedInfantryBattalion([44.619771,43.765389], 16, [
+		new MountedInfantryBattalion([44.619771, 43.765389], 16, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "503rd MR 2nd Battalion", Team.Russia),
-		new BMP2Battalion([44.619771,43.765389], 45, [
+		new BMP2Battalion([44.619771, 43.765389], 45, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "503rd MR 2nd Battalion BMPs", Team.Russia),
-		new T72Battalion([44.619771,43.765389], 10, [
+		new T72Battalion([44.619771, 43.765389], 10, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "503rd MR Tank Company", Team.Russia),
-		
+
 		//stationed in Vladikavkaz
-		new MountedInfantryBattalion([44.718186,43.042600], 16, [
+		new MountedInfantryBattalion([44.718186, 43.042600], 16, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "429th MR 1st Battalion", Team.Russia),
-		new BMP2Battalion([44.718186,43.042600], 45, [
+		new BMP2Battalion([44.718186, 43.042600], 45, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "429th MR 1st Battalion BMPs", Team.Russia),
-		new MountedInfantryBattalion([44.718186,43.042600], 16, [
+		new MountedInfantryBattalion([44.718186, 43.042600], 16, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "429th MR 2nd Battalion", Team.Russia),
-		new BMP2Battalion([44.718186,43.042600], 45, [
+		new BMP2Battalion([44.718186, 43.042600], 45, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "429th MR 2nd Battalion BMPs", Team.Russia),
-		new T72Battalion([44.718186,43.042600], 10, [
+		new T72Battalion([44.718186, 43.042600], 10, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "429th MR Tank Company 1", Team.Russia),
-		new T72Battalion([44.718186,43.042600], 10, [
+		new T72Battalion([44.718186, 43.042600], 10, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "429th MR Tank Company 2", Team.Russia),
-		
-		new MountedInfantryBattalion([44.718186,43.042600], 16, [
+
+		new MountedInfantryBattalion([44.718186, 43.042600], 16, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "693rd MR 2nd Battalion", Team.Russia),
-		new BMP2Battalion([44.718186,43.042600], 45, [
+		new BMP2Battalion([44.718186, 43.042600], 45, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "693rd MR 2nd Battalion BMPs", Team.Russia),
-		new MountedInfantryBattalion([44.718186,43.042600], 16, [
+		new MountedInfantryBattalion([44.718186, 43.042600], 16, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "693rd MR 3rd Battalion", Team.Russia),
-		new BTR80Battalion([44.718186,43.042600], 60, [
+		new BTR80Battalion([44.718186, 43.042600], 60, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "693rd MR 3rd Battalion BTRs", Team.Russia),
-		new T72Battalion([44.718186,43.042600], 30, [
+		new T72Battalion([44.718186, 43.042600], 30, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "693rd MR Tank Battalion", Team.Russia),
-		
-		new AkatsiyaBattalion([44.718186,43.042600], 18, [
+
+		new AkatsiyaBattalion([44.718186, 43.042600], 18, [
 			RokiTunnel,
 			Tskhinvali
 		], "292nd Self-Propelled Artillery 1st Battalion", Team.Russia),
-		new AkatsiyaBattalion([44.718186,43.042600], 18, [
+		new AkatsiyaBattalion([44.718186, 43.042600], 18, [
 			RokiTunnel,
 			Tskhinvali
 		], "292nd Self-Propelled Artillery 2nd Battalion", Team.Russia),
-		new MRLBattalion([44.718186,43.042600], 18, [
+		new MRLBattalion([44.718186, 43.042600], 18, [
 			RokiTunnel,
 			Tskhinvali
 		], "292nd MRL Battalion", Team.Russia),
-		
-		new T72Battalion([44.718186,43.042600], 30, [
+
+		new T72Battalion([44.718186, 43.042600], 30, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "141st Independent Tank Battalion", Team.Russia),
-		new MountedInfantryBattalion([44.718186,43.042600], 8, [
+		new MountedInfantryBattalion([44.718186, 43.042600], 8, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
@@ -715,110 +713,110 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 
 		/**42nd MR Division**/
 		//stationed in Shali
-		new MountedInfantryBattalion([45.841593,43.155187], 16, [
+		new MountedInfantryBattalion([45.841593, 43.155187], 16, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "70th MR 1st Battalion", Team.Russia),
-		new BMP2Battalion([45.841593,43.155187], 45, [
+		new BMP2Battalion([45.841593, 43.155187], 45, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "70th MR 1st Battalion BMPs", Team.Russia),
-		new MountedInfantryBattalion([45.841593,43.155187], 16, [
+		new MountedInfantryBattalion([45.841593, 43.155187], 16, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "70th MR 2nd Battalion", Team.Russia),
-		new BTR80Battalion([45.841593,43.155187], 60, [
+		new BTR80Battalion([45.841593, 43.155187], 60, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "70th MR 2nd Battalion BTRs", Team.Russia),
-		new T62Battalion([45.841593,43.155187], 10, [
+		new T62Battalion([45.841593, 43.155187], 10, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "70th Tank Company", Team.Russia),
-		
+
 		// stationed in Khankala
-		new MountedInfantryBattalion([45.740135,43.300917], 16, [
+		new MountedInfantryBattalion([45.740135, 43.300917], 16, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "71st MR 1st Battalion", Team.Russia),
-		new BMP2Battalion([45.740135,43.300917], 45, [
+		new BMP2Battalion([45.740135, 43.300917], 45, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "71st MR 1st Battalion BMPs", Team.Russia),
-		new MountedInfantryBattalion([45.740135,43.300917], 16, [
+		new MountedInfantryBattalion([45.740135, 43.300917], 16, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "71st MR 2nd Battalion", Team.Russia),
-		new BTR80Battalion([45.740135,43.300917], 60, [
+		new BTR80Battalion([45.740135, 43.300917], 60, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "71st MR 2nd Battalion BTRs", Team.Russia),
-		new MountedInfantryBattalion([45.740135,43.300917], 16, [
+		new MountedInfantryBattalion([45.740135, 43.300917], 16, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "71st MR 3rd Battalion", Team.Russia),
-		new BTR80Battalion([45.740135,43.300917], 60, [
+		new BTR80Battalion([45.740135, 43.300917], 60, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "71st MR 3rd Battalion BTRs", Team.Russia),
-		new T62Battalion([45.740135,43.300917], 30, [
+		new T62Battalion([45.740135, 43.300917], 30, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "71st Tank Battalion", Team.Russia),
-		
-		new AkatsiyaBattalion([45.740135,43.300917], 18, [
+
+		new AkatsiyaBattalion([45.740135, 43.300917], 18, [
 			RokiTunnel,
 			Tskhinvali
 		], "50th Self-Propelled Artillery 1st Battalion", Team.Russia),
-		new AkatsiyaBattalion([45.740135,43.300917], 18, [
+		new AkatsiyaBattalion([45.740135, 43.300917], 18, [
 			RokiTunnel,
 			Tskhinvali
 		], "50th Self-Propelled Artillery 2nd Battalion", Team.Russia),
-		new AkatsiyaBattalion([45.740135,43.300917], 18, [
+		new AkatsiyaBattalion([45.740135, 43.300917], 18, [
 			RokiTunnel,
 			Tskhinvali
 		], "50th Self-Propelled Artillery 3rd Battalion", Team.Russia),
-		new MRLBattalion([45.740135,43.300917], 18, [
+		new MRLBattalion([45.740135, 43.300917], 18, [
 			RokiTunnel,
 			Tskhinvali
 		], "50th MRL Battalion", Team.Russia),
-		
-		new MountedInfantryBattalion([45.740135,43.300917], 8, [
+
+		new MountedInfantryBattalion([45.740135, 43.300917], 8, [
 			RokiTunnel,
 			Tskhinvali,
 			Gori
 		], "417th Independent Reconnaissance Battalion", Team.Russia),
-		new MountedInfantryBattalion([44.226885,43.021807], 4, [
+		new MountedInfantryBattalion([44.226885, 43.021807], 4, [
 			RokiTunnel,
 			Tskhinvali,
 		], "Vostok Battalion", Team.Russia),
-		new MountedInfantryBattalion([44.226885,43.021807], 4, [
+		new MountedInfantryBattalion([44.226885, 43.021807], 4, [
 			RokiTunnel,
 			Tskhinvali,
 		], "Zapad Battalion", Team.Russia),
 
 		/**Other**/
-		new MountedInfantryBattalion([44.226885,43.021807], 12, [
+		new MountedInfantryBattalion([44.226885, 43.021807], 12, [
 			RokiTunnel,
 			Tskhinvali
 		], "10th Indepdendent Spetsnaz Brigade 2", Team.Russia),
-		new MountedInfantryBattalion([44.226885,43.021807], 4, [
+		new MountedInfantryBattalion([44.226885, 43.021807], 4, [
 			RokiTunnel,
 			Tskhinvali
 		], "45th Indepdendent Recon Spetsnaz Regiment", Team.Russia),
-		
+
 		new InfantryBattalion([44.601775, 43.195225], 12, [
 			RokiTunnel,
 			BolshoyLiakhvi
@@ -835,7 +833,7 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 			RokiTunnel,
 			BolshoyLiakhvi
 		], "234th Air Assault BMDs", Team.Russia),
-		
+
 		/**SOUTH OSSETIA**/
 
 		/**Militia**/
