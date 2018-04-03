@@ -364,7 +364,7 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 	// village far northwest of Tskhinvali
 	const Kvaisi: Waypoint = { location: [43.6443297, 42.522274] };
 	// village/road northwest of Tskhinvali
-	const Dzari: Waypoint = { location: [43.8672982, 42.2816823] };
+	const Dzari: Waypoint = { location: [43.870988, 42.286738] };
 	// various points northeast of Tskhinvali
 	const Dmenisi: Waypoint = { location: [44.067708, 42.271014] };
 	const Sarabuki: Waypoint = { location: [44.0339178, 42.2698956] };
@@ -839,7 +839,7 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		/**Militia**/
 		new T55Battalion([43.962491, 42.211796], 10, [
 		], "South Ossetian Tanks", Team.SouthOssetia),
-		new MRLBattalion([43.962491, 42.211796], 10, [
+		new MRLBattalion([43.964393, 42.221488], 10, [
 		], "South Ossetian MRLs", Team.SouthOssetia),
 		new InfantryBattalion([43.959390, 42.206754], 8, [
 		], "South Ossetian Unit 1", Team.SouthOssetia),
@@ -847,14 +847,18 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		], "South Ossetian Unit 2", Team.SouthOssetia),
 		new InfantryBattalion([44.049107, 42.270518], 12, [
 		], "South Ossetian Unit 3", Team.SouthOssetia),
-		new InfantryBattalion([43.978487, 42.206198], 48, [
+		new InfantryBattalion([43.978487, 42.206198], 32, [
 		], "South Ossetian 4th Battalion", Team.SouthOssetia),
 		new InfantryBattalion([43.896058, 42.211914], 8, [
 		], "South Ossetian Unit 4", Team.SouthOssetia),
 		new InfantryBattalion([43.896058, 42.211914], 8, [
 		], "South Ossetian Unit 5", Team.SouthOssetia),
-		new InfantryBattalion([43.630824, 42.509382], 12, [
-		], "South Ossetian Unit 6", Team.SouthOssetia)
+		new InfantryBattalion([43.6443297, 42.522274], 12, [
+		], "South Ossetian Unit 6", Team.SouthOssetia),
+		new InfantryBattalion([43.77322196960449, 42.19406111275616], 8, [
+		], "South Ossetian Unit 7", Team.SouthOssetia),
+		new InfantryBattalion([44.4746876, 42.124288], 8, [
+		], "South Ossetian Unit 8", Team.SouthOssetia),
 	];
 }
 
