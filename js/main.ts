@@ -841,19 +841,19 @@ function initializeUnits(interdictPercentage: number): Entity[] {
 		], "South Ossetian Tanks", Team.SouthOssetia),
 		new MRLBattalion([43.962491, 42.211796], 10, [
 		], "South Ossetian MRLs", Team.SouthOssetia),
-		new InfantryBattalion([43.959390, 42.206754], 4, [
+		new InfantryBattalion([43.959390, 42.206754], 8, [
 		], "South Ossetian Unit 1", Team.SouthOssetia),
-		new InfantryBattalion([43.962491, 42.211796], 8, [
+		new InfantryBattalion([43.962491, 42.211796], 16, [
 		], "South Ossetian Unit 2", Team.SouthOssetia),
-		new InfantryBattalion([44.049107, 42.270518], 6, [
+		new InfantryBattalion([44.049107, 42.270518], 12, [
 		], "South Ossetian Unit 3", Team.SouthOssetia),
-		new InfantryBattalion([43.978487, 42.206198], 24, [
+		new InfantryBattalion([43.978487, 42.206198], 48, [
 		], "South Ossetian 4th Battalion", Team.SouthOssetia),
-		new InfantryBattalion([43.896058, 42.211914], 4, [
+		new InfantryBattalion([43.896058, 42.211914], 8, [
 		], "South Ossetian Unit 4", Team.SouthOssetia),
-		new InfantryBattalion([43.896058, 42.211914], 4, [
+		new InfantryBattalion([43.896058, 42.211914], 8, [
 		], "South Ossetian Unit 5", Team.SouthOssetia),
-		new InfantryBattalion([43.630824, 42.509382], 6, [
+		new InfantryBattalion([43.630824, 42.509382], 12, [
 		], "South Ossetian Unit 6", Team.SouthOssetia)
 	];
 }
