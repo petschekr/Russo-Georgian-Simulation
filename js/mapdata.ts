@@ -13,7 +13,7 @@ function directionsUrlFormatter(start: Vector2, end: Vector2, type: Mode = Mode.
 	let coordinates = `${start[0]},${start[1]};${end[0]},${end[1]}`;
 	let mode = type === Mode.Walking ? "walking" : "driving";
 	let overview = full ? "full" : "simplified";
-	return `/directions/${mode}/${overview}/${coordinates}`;
+	return `/russo-georgia/directions/${mode}/${overview}/${coordinates}`;
 }
 
 export async function getDirections(start: Vector2, end: Vector2, unitType: UnitType): Promise<Vector2[]> {
@@ -48,11 +48,11 @@ export async function terrainAlongLine(line: LineString, sample: number /* meter
 		reducedPoints.push(Utilities.pointToVector(turf.along(line, i * sample, { units: "meters" })));
 	}
 
-	let compiledPoints = reducedPoints.map(point => point.join(",")).join(";");
-	try {
-		return await (await fetch(`/terrain/${compiledPoints}`)).json();
+	const chunkSize = 150; // Something has stability issues with URLs too large when running in production
+	let data: any[] = [];
+	for (let i = 0; i < reducedPoints.length; i += chunkSize) {
+		let compiledPoints = reducedPoints.slice(i, i + chunkSize).map(point => point.join(",")).join(";");
+		data = data.concat(await (await fetch(`/russo-georgia/terrain/${compiledPoints}`)).json());
 	}
-	catch (err) {
-		throw err;
-	}
+	return data;
 }

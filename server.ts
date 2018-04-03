@@ -78,19 +78,19 @@ app.use((req, res, next) => {
 	next();
 });
 
-app.use("/node_modules", express.static("./node_modules"));
-app.use("/css", express.static("./css"));
-app.use("/js", express.static("./js"));
-app.route("/system-production.js").get((request, response) => {
+app.use("/russo-georgia/node_modules", express.static("./node_modules"));
+app.use("/russo-georgia/css", express.static("./css"));
+app.use("/russo-georgia/js", express.static("./js"));
+app.route("/russo-georgia/system-production.js").get((request, response) => {
 	fs.createReadStream("./system-production.js").pipe(response);
 });
-app.route("/dist.js").get((request, response) => {
+app.route("/russo-georgia/dist.js").get((request, response) => {
 	fs.createReadStream("./dist.js").pipe(response);
 });
-app.route("/dist.js.map").get((request, response) => {
+app.route("/russo-georgia/dist.js.map").get((request, response) => {
 	fs.createReadStream("./dist.js.map").pipe(response);
 });;
-app.route("/").get((request, response) => {
+app.route("/russo-georgia").get((request, response) => {
 	fs.createReadStream("./index.html").pipe(response);
 });
 
@@ -136,7 +136,7 @@ async function getTiles(topLeft: Vector2, bottomRight: Vector2, zoom: number = 1
 }
 // Bounding box of South Ossetia
 getTiles([41.739886, 43.995837], [46.127184, 41.844546]);
-app.route("/terrain/:coords").get(async (request, response) => {
+app.route("/russo-georgia/terrain/:coords").get(async (request, response) => {
 	const zoom = 14;
 
 	let rawPoints: string = request.params.coords;
@@ -169,19 +169,30 @@ app.route("/terrain/:coords").get(async (request, response) => {
 			type: LandCover.urban
 		};
 
-		for (let i = 0; i < tile.layers.contour.length; i++) {
-			let feature: VTileFeature<{ele: number; index: number}> = tile.layers.contour.feature(i);
-			let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
-			if (processed.elevation < feature.properties.ele && turf.booleanPointInPolygon(processed.location, polygon)) {
-				processed.elevation = feature.properties.ele;
+		if (tile.layers.contour) {
+			for (let i = 0; i < tile.layers.contour.length; i++) {
+				let feature: VTileFeature<{ele: number; index: number}> = tile.layers.contour.feature(i);
+				let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
+				if (processed.elevation < feature.properties.ele && turf.booleanPointInPolygon(processed.location, polygon)) {
+					processed.elevation = feature.properties.ele;
+				}
 			}
 		}
-		for (let i = 0; i < tile.layers.landcover.length; i++) {
-			let feature: VTileFeature<{class: keyof typeof LandCover}> = tile.layers.landcover.feature(i);
-			let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
-			if (processed.type < LandCover[feature.properties.class] && turf.booleanPointInPolygon(processed.location, polygon)) {
-				processed.type = LandCover[feature.properties.class];
+		else {
+			console.warn(`Tile ${tilePoint.join(", ")} (${point.join(", ")}) does not have contour layer`);
+		}
+
+		if (tile.layers.landcover) {
+			for (let i = 0; i < tile.layers.landcover.length; i++) {
+				let feature: VTileFeature<{class: keyof typeof LandCover}> = tile.layers.landcover.feature(i);
+				let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
+				if (processed.type < LandCover[feature.properties.class] && turf.booleanPointInPolygon(processed.location, polygon)) {
+					processed.type = LandCover[feature.properties.class];
+				}
 			}
+		}
+		else {
+			console.warn(`Tile ${tilePoint.join(", ")} (${point.join(", ")}) does not have landcover layer`);
 		}
 
 		return {
@@ -192,7 +203,7 @@ app.route("/terrain/:coords").get(async (request, response) => {
 	response.send(data);
 });
 
-app.route("/directions/:mode/:type/:coords").get(async (request, response) => {
+app.route("/russo-georgia/directions/:mode/:type/:coords").get(async (request, response) => {
 	let rawPoints: string[] = request.params.coords.split(";");
 	let end: Vector2 = [0, 0];
 	// Points rounded to 6 decimal places
