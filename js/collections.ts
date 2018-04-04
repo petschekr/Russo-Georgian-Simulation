@@ -14,7 +14,7 @@ const SINGLE_UNIT_MODE = true;
 
 // Groups of infantry, tanks, etc.
 export abstract class AgentCollection<T extends Unit> implements Entity {
-	private static instances: AgentCollection<Unit>[] = [];
+	public static instances: AgentCollection<Unit>[] = [];
 
 	public readonly id: string;
 	public abstract readonly type: UnitType;

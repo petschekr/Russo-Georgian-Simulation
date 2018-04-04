@@ -952,6 +952,7 @@ async function start() {
 		if (currentUpdate !== null) {
 			window.clearTimeout(currentUpdate);
 		}
+		AgentCollection.instances = [];
 		stopButton.textContent = "Start";
 		resetButton.style.display = "none";
 		scenarioSlider.disabled = false;
