@@ -96,7 +96,10 @@ export abstract class Unit implements Entity {
 		}
 		//this.path.geometry!.coordinates.unshift(this.location);
 
-		if (turf.distance(this.location, this.destination.location, { units: "meters" }) < NAVIGATION_THRESHOLD) {
+		if (
+			turf.distance(this.location, this.destination.location, { units: "meters" }) < NAVIGATION_THRESHOLD
+			|| (this.path.geometry!.coordinates.length === 2 && Utilities.fastDistance(getCoord(0), getCoord(1)) === 0)
+		) {
 			// Destination arrived
 			this.destinationArrived = true;
 			// Spread out by fuzzing location
