@@ -40,7 +40,7 @@ export type LandCover = keyof typeof LandCoverEnum;
 export type TerrainReturn = { location: Vector2; elevation: number; type: LandCover; };
 type LineString = _turf.Feature<_turf.LineString, any>;
 
-export async function terrainAlongLine(line: LineString, sample: number /* meters */): Promise<TerrainReturn[]> { 
+export async function terrainAlongLine(line: LineString, sample: number /* meters */): Promise<TerrainReturn[]> {
 	let length = turf.length(line, { units: "meters" });
 	let reducedPointCount = Math.ceil(length / sample) + 1;
 	let reducedPoints: Vector2[] = [];

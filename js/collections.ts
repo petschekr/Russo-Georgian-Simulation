@@ -97,6 +97,8 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	private currentGrade: number = 0;
 	private heightDiffs: number[] = [0];
 	public get _currentTerrain() { return this.currentTerrain; }
+	public get _currentGrade() { return this.currentGrade; }
+	public get _currentSpeed() { return this.units.length > 0 ? this.units[0].speed : 0; }
 	private async calculateNavigation(): Promise<void> {
 		if (this.waypoints.length <= 0) {
 			return;

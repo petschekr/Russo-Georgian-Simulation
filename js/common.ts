@@ -93,6 +93,8 @@ export interface HoverInfo {
 	color: string;
 	health: number;
 	terrain: string;
+	slope: number;
+	speed: number;
 }
 
 export class Dispatcher {
@@ -158,7 +160,7 @@ export class Dispatcher {
 			this.hoverInfoCompiled += `
 			<strong style="font-size: 80%;">${info.name}</strong>
 			<br />
-			<span style="color: ${info.color}">${info.team}</span> | H: ${info.health.toFixed(0)} | T: ${info.terrain}
+			<span style="color: ${info.color}">${info.team}</span> | H: ${info.health.toFixed(0)} | T: ${info.terrain} | S: ${info.slope.toFixed(2)} | S: ${info.speed.toFixed(1)} m/s
 			`;
 			if (i !== this.hoverInfo.length - 1) {
 				this.hoverInfoCompiled += "<hr />"
@@ -347,7 +349,9 @@ export class Dispatcher {
 						color: dispatcher.colorForTeam(collection.team),
 						team: Team[collection.team],
 						health: collection.health,
-						terrain: collection._currentTerrain.length > 0 ? collection._currentTerrain[0].type : "N/A"
+						terrain: collection._currentTerrain.length > 0 ? collection._currentTerrain[0].type : "N/A",
+						slope: collection._currentGrade,
+						speed: collection._currentSpeed,
 					});
 				}
 				else {
