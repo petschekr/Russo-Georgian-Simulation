@@ -102,23 +102,38 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		}
 		
 		let next = this.waypoints[0];
-		this.intermediatePoints = await getDirections(this.location, next.location, this.type);
-		let intermediatePath = turf.lineString(this.intermediatePoints);
 
+		let intermediatePath: _turf.Feature<_turf.LineString> = turf.lineString([this.location, this.location]);
+		let heightDiffs: number[] = [0];
 		const terrainSample = 500; // meters
-		this.currentTerrain = await terrainAlongLine(intermediatePath, terrainSample);
-		let heightDiffs = this.currentTerrain.map(terrain => terrain.elevation).map((ele, i, arr) => Math.abs(ele - arr[i - 1])).slice(1);
+
+		const bestDirections = async (type: UnitType = this.type) => {
+			this.intermediatePoints = await getDirections(this.location, next.location, type);
+			intermediatePath = turf.lineString(this.intermediatePoints);
+			this.currentTerrain = await terrainAlongLine(intermediatePath, terrainSample);
+			heightDiffs = this.currentTerrain.map(terrain => terrain.elevation).map((ele, i, arr) => Math.abs(ele - arr[i - 1])).slice(1);
+		}
+		await bestDirections();
+
 		// Don't take really inefficient paths
 		const inefficientPathFactor = 2.5;
-		if (turf.length(intermediatePath) > turf.distance(this.location, next.location) * inefficientPathFactor) {
-			// Check if direct path is too steep
-			if (Math.max(...heightDiffs) / terrainSample <= this.units[0].maxClimbAbility) {
-				// Set path to be direct
-				this.intermediatePoints = [this.location, next.location];
-				intermediatePath = turf.lineString(this.intermediatePoints);
+		const isInefficient = () => turf.length(intermediatePath) > turf.distance(this.location, next.location) * inefficientPathFactor;
+		if (isInefficient()) {
+			// Switch to walking directions to check if that's faster
+			await bestDirections(UnitType.None);
+			if (isInefficient()) {
+				// Check if direct path is too steep
+				if (Math.max(...heightDiffs) / terrainSample <= this.units[0].maxClimbAbility) {
+					// Set path to be direct
+					this.intermediatePoints = [this.location, next.location];
+					intermediatePath = turf.lineString(this.intermediatePoints);
+				}
+				else {
+					console.warn(`Taking long route because max steepness along route is too high (${this.id})`);
+				}
 			}
 			else {
-				console.warn("Taking long route because max steepness along route is too high");
+				console.info(`Using walking directions instead of driving due to inefficiency (${this.id})`);
 			}
 		}
 
