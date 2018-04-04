@@ -410,32 +410,37 @@ export class Dispatcher {
 	private readonly output = document.getElementById("output") as HTMLTextAreaElement;
 	private readonly tickProgress = document.getElementById("tick-progress") as HTMLParagraphElement;
 	public async tick(): Promise<void> {
-		this.tickProgress.textContent = "";
 		this.time.setSeconds(this.time.getSeconds() + this.secondsPerTick);
 
 		this.unitsEngaged.georgiansInCity = 0;
 		this.unitsEngaged.southOssetiansInCity = 0;
 		this.unitsEngaged.georgiansInRegion = 0;
 		this.unitsEngaged.russiansInRegion = 0;
+		let unitsFinished = 0;
 		for (let [i, entity] of this.entities.entries()) {
 			await entity.tick(this.secondsPerTick);
 
 			// Check terminal conditions
-			if (entity instanceof AgentCollection && !entity.eliminated) {
-				if (entity.team === Team.Georgia) {
-					if (turf.booleanPointInPolygon(entity.location, TshkinvaliArea)) {
-						this.unitsEngaged.georgiansInCity++;
-						this.unitsEngaged.georgiansInRegion++; // Implied
-					}
-					else if (turf.booleanPointInPolygon(entity.location, SouthOssetiaArea)) {
-						this.unitsEngaged.georgiansInRegion++;
-					}
+			if (entity instanceof AgentCollection) {
+				if (entity.eliminated || entity.waypoints.length === 0) {
+					unitsFinished++;
 				}
-				else if (entity.team === Team.Russia && turf.booleanPointInPolygon(entity.location, SouthOssetiaArea)) {
-					this.unitsEngaged.russiansInRegion++;
-				}
-				else if (entity.team === Team.SouthOssetia && turf.booleanPointInPolygon(entity.location, TshkinvaliArea)) {
-					this.unitsEngaged.southOssetiansInCity++;
+				if (!entity.eliminated) {
+					if (entity.team === Team.Georgia) {
+						if (turf.booleanPointInPolygon(entity.location, TshkinvaliArea)) {
+							this.unitsEngaged.georgiansInCity++;
+							this.unitsEngaged.georgiansInRegion++; // Implied
+						}
+						else if (turf.booleanPointInPolygon(entity.location, SouthOssetiaArea)) {
+							this.unitsEngaged.georgiansInRegion++;
+						}
+					}
+					else if (entity.team === Team.Russia && turf.booleanPointInPolygon(entity.location, SouthOssetiaArea)) {
+						this.unitsEngaged.russiansInRegion++;
+					}
+					else if (entity.team === Team.SouthOssetia && turf.booleanPointInPolygon(entity.location, TshkinvaliArea)) {
+						this.unitsEngaged.southOssetiansInCity++;
+					}
 				}
 			}
 
@@ -443,6 +448,10 @@ export class Dispatcher {
 				this.tickProgress.textContent = `${i} / ${this.entities.length.toLocaleString()} subticks processed`;
 			}
 		}
+		if (this.tickCount > 0) {
+			this.tickProgress.textContent = `${unitsFinished.toLocaleString()} / ${this.entities.length.toLocaleString()} units finished`;
+		}
+
 		if (this.unitsEngaged.georgiansInCity === 0) {
 			if (!this.completedObjectives[Team.SouthOssetia]) {
 				this.output.value += `Tick ${this.tickCount}: South Ossetian objective completed (${this.unitsEngaged.southOssetiansInCity} South Ossetians in Tshkinvali)\n`;
