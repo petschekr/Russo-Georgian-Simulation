@@ -373,10 +373,15 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		await this.calculateNavigation();
 		// Distribute new path to subunits and include their part of the arc
 		for (let [i, unit] of this.units.entries()) {
-			unit.updatePath([
-				...this.intermediatePoints,
-				Utilities.pointToVector(turf.along(spreadLine, spreadLineLength / this.units.length * i, { units: "meters" }))
-			], this.waypoints[0]);
+			if (SINGLE_UNIT_MODE) {
+				unit.updatePath(this.intermediatePoints, this.waypoints[0]);
+			}
+			else {
+				unit.updatePath([
+					...this.intermediatePoints,
+					Utilities.pointToVector(turf.along(spreadLine, spreadLineLength / this.units.length * i, { units: "meters" }))
+				], this.waypoints[0]);
+			}
 		}
 		this.navigating = true;
 		this.engagingCollection = closestCollection;
