@@ -1,9 +1,12 @@
 import * as fs from "fs";
 import * as express from "express";
+import * as responseTime from "response-time";
 import { default as fetch } from "node-fetch";
 import pbf = require("pbf");
 import * as turf from "@turf/turf";
 const { VectorTile }: { VectorTile: VTileInit } = require("@mapbox/vector-tile");
+import * as osrm from "osrm";
+import { point } from "@turf/turf";
 
 const MAPBOX_TOKEN = "pk.eyJ1IjoicGV0c2NoZWtyIiwiYSI6ImNqZHY0YWExZDBlM3ozM2xidWMyZnRwMjkifQ.b65yhhfYo08ptlaRmSungw";
 
@@ -71,6 +74,7 @@ async function wait(milliseconds: number): Promise<void> {
 }
 
 let app = express();
+app.use(responseTime());
 
 app.use((req, res, next) => {
 	res.header("Access-Control-Allow-Origin", "*");
@@ -203,46 +207,34 @@ app.route("/russo-georgia/terrain/:coords").get(async (request, response) => {
 	response.send(data);
 });
 
+const routers = {
+	driving: new osrm("./osrm/southossetia_car.osrm"),
+	walking: new osrm("./osrm/southossetia_foot.osrm")
+};
 app.route("/russo-georgia/directions/:mode/:type/:coords").get(async (request, response) => {
 	let rawPoints: string[] = request.params.coords.split(";");
 	let end: Vector2 = [0, 0];
-	// Points rounded to 6 decimal places
 	let points = rawPoints.map((pair, i) => {
 		if (i === rawPoints.length - 1) {
 			let xy = pair.split(",");
 			end[0] = parseFloat(xy[0]);
 			end[1] = parseFloat(xy[1]);
 		}
-		return pair.split(",").map(coord => parseFloat(coord).toFixed(6)).join(",");
-	}).join(";");
+		return pair.split(",").map(coord => parseFloat(coord)) as Vector2;
+	});
 
-	const filename = `./directions-cache/directions-${request.params.mode}-${request.params.type}-${points}.json`;
-	try {
-		let data = await readFileAsync(filename);
-		response.type("json").end(data.toString("utf8"));
-	}
-	catch {
-		const url = `https://api.mapbox.com/directions/v5/mapbox/${request.params.mode}/${points}.json?access_token=${MAPBOX_TOKEN}&geometries=geojson&overview=${request.params.type}`;
-		
-		let data = await fetch(url);
-		while (true) {
-			if (data.status !== 429) {
-				break;
-			}
-			// Too many request -- wait a bit
-			console.warn("Too many requests made to Mapbox! Waiting before retrying");
-			await wait(15000);
-			data = await fetch(url);
-		}
+	let router = request.params.mode === "walking" ? routers.walking : routers.driving;
 
-		let directions = JSON.stringify([
-			...(await data.json()).routes[0].geometry.coordinates,
+	router.route({
+		coordinates: points,
+		overview: request.params.type,
+		geometries: "geojson"
+	}, (err, results) => {
+		response.json([
+			...results.routes[0].geometry.coordinates,
 			end // Mapbox sometimes simplifies directions and leaves out actual desired destination
 		]);
-		response.type("json").end(directions);
-		await writeFileAsync(filename, directions);
-	}
-
+	});
 });
 
 const PORT = 3001;

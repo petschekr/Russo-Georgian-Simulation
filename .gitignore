@@ -68,3 +68,5 @@ tile-cache/
 \.vscode/
 
 directions-cache/
+
+osrm/
