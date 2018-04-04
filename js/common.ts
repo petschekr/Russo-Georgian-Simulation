@@ -101,7 +101,7 @@ export class Dispatcher {
 
 	private time: Date;
 	get formattedTime(): string {
-		return moment(this.time).utc().format("DD MMM YY HHmm[Z]");
+		return moment(this.time).utc().format("DD MMM YY HHmm[Z]") + ` (T ${this.tickCount.toLocaleString()})`;
 	}
 
 	public entities: Entity[];
@@ -404,14 +404,16 @@ export class Dispatcher {
 		[Team.SouthOssetia]: false,
 	};
 	private readonly output = document.getElementById("output") as HTMLTextAreaElement;
+	private readonly tickProgress = document.getElementById("tick-progress") as HTMLParagraphElement;
 	public async tick(): Promise<void> {
+		this.tickProgress.textContent = "";
 		this.time.setSeconds(this.time.getSeconds() + this.secondsPerTick);
 
 		this.unitsEngaged.georgiansInCity = 0;
 		this.unitsEngaged.southOssetiansInCity = 0;
 		this.unitsEngaged.georgiansInRegion = 0;
 		this.unitsEngaged.russiansInRegion = 0;
-		for (let entity of this.entities) {
+		for (let [i, entity] of this.entities.entries()) {
 			await entity.tick(this.secondsPerTick);
 
 			// Check terminal conditions
@@ -431,6 +433,10 @@ export class Dispatcher {
 				else if (entity.team === Team.SouthOssetia && turf.booleanPointInPolygon(entity.location, TshkinvaliArea)) {
 					this.unitsEngaged.southOssetiansInCity++;
 				}
+			}
+
+			if (this.tickCount === 0) {
+				this.tickProgress.textContent = `${i} / ${this.entities.length.toLocaleString()} subticks processed`;
 			}
 		}
 		if (this.unitsEngaged.georgiansInCity === 0) {

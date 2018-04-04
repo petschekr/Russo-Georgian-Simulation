@@ -882,6 +882,7 @@ async function start() {
 
 	const timeElement = document.getElementById("time")!;
 	const outputArea = document.getElementById("output") as HTMLTextAreaElement;
+	const tickProgress = document.getElementById("tick-progress") as HTMLParagraphElement;
 
 	const scenarioSlider = document.getElementById("scenario") as HTMLInputElement;
 	const scenarioValue = document.getElementById("scenario-value") as HTMLSpanElement;
@@ -889,6 +890,7 @@ async function start() {
 
 	function initialize() {
 		timeElement.textContent = "Initializing...";
+		tickProgress.textContent = "";
 
 		if (dispatcher) {
 			for (let id of dispatcher.layerIDs) {
