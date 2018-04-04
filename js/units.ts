@@ -141,7 +141,7 @@ export abstract class Unit implements Entity {
 			}
 			// bestWeapon[1].total--;
 		}
-		console.log(`Applying ${damage} damage with ${bestWeapon[0].name}`);
+		//console.log(`Applying ${damage} damage with ${bestWeapon[0].name}`);
 		if (collection.damage(this.container, damage)) {
 			// Target destroyed
 			this.isEngaging = false;

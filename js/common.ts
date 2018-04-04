@@ -378,7 +378,7 @@ export class Dispatcher {
 			);
 			this.layerData.get(collection.team)!.visibility.set(
 				collection.id,
-				turf.circle(collection.location, collection.maxVisibilityRange, { units: "meters" })
+				turf.circle(collection.location, collection.maxVisibilityRange, { units: "meters", steps: 20 })
 			);
 		}
 	}
@@ -391,7 +391,7 @@ export class Dispatcher {
 				for (let value of this.layerData.get(team)![key].values()) {
 					data.push(value);
 				}
-				source.setData(turf.combine(turf.featureCollection(data)));
+				source.setData(turf.featureCollection(data) as any);
 			}
 		}
 	}

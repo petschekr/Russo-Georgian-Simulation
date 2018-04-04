@@ -2,7 +2,7 @@ import { Vector2, Waypoint, Entity, Team, NAVIGATION_THRESHOLD, Utilities } from
 import { Unit, TankT55, Cobra, BTR80, TankT62, TankT72, ArtilleryD30, ArtilleryDANA, Akatsiya, MRLGrad, BMP2, InfantrySquad, MountedInfantrySquad } from "./units";
 import { UnitType } from "./weapons";
 import { getDirections, terrainAlongLine, TerrainReturn, LandCover } from "./mapdata";
-import { map, dispatcher } from "./main";
+import { map, dispatcher, DEBUGGING } from "./main";
 
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
@@ -137,11 +137,11 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 					this.intermediatePoints = [this.location, next.location];
 					intermediatePath = turf.lineString(this.intermediatePoints);
 				}
-				else {
+				else if (DEBUGGING) {
 					console.warn(`Taking long route because max steepness along route is too high (${this.id})`);
 				}
 			}
-			else {
+			else if (DEBUGGING) {
 				console.info(`Using walking directions instead of driving due to inefficiency (${this.id})`);
 			}
 		}
@@ -153,7 +153,9 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			this.currentGrade = 0;
 		}
 
-		console.log(`Calculated navigation for route of ${turf.length(intermediatePath).toFixed(1)} km`);
+		if (DEBUGGING) {
+			console.log(`Calculated navigation for route of ${turf.length(intermediatePath).toFixed(1)} km`);
+		}
 
 		dispatcher.layerData.get(this.team)!.path.set(this.id, intermediatePath);
 		
@@ -181,11 +183,13 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			this.navigationCalculated = false;
 			this.navigating = false;
 			if (this.waypoints.length === 0) {
-				console.log(`${this.id} is done with navigation!`);
+				if (DEBUGGING) {
+					console.log(`${this.id} is done with navigation!`);
+				}
 				// Hide intermediate points path
 				dispatcher.layerData.get(this.team)!.path.delete(this.id);
 			}
-			else {
+			else if (DEBUGGING) {
 				console.log(`${this.id} moving to next objective. ${this.waypoints.length - 1} remaining.`);
 			}
 		}
@@ -234,7 +238,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		this.unitsFinishedNavigating = this.units.length === finishedNavigation;
 		// Disabled for performance concerns
 		//this.visibilityArea = turf.union(...unitVisibilties);
-		this.visibilityArea = turf.circle(this.location, this.maxVisibilityRange, { units: "meters" });
+		this.visibilityArea = turf.circle(this.location, this.maxVisibilityRange, { units: "meters", steps: 20 });
 
 		await this.prepareCombat();
 		await this.combat(secondsElapsed);
@@ -315,7 +319,9 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 					continue;
 				}
 				this.detectedCollections.add(collection);
-				console.warn("Detected collection:", collection.id);
+				if (DEBUGGING) {
+					console.warn("Detected collection:", collection.id);
+				}
 			}
 			else if (collection.eliminated || (!turf.booleanPointInPolygon(collection.location, this.visibilityArea) && !this.engagingBecauseDamaged)) {
 				// Remove unit from detected
@@ -397,12 +403,16 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		if (this.retreating) return;
 		// Retreat if bad odds
 		if (AgentCollection.areBadOdds(this, this.engagingCollection) && !this.retreating) {
-			console.warn(`Retreating due to bad odds: ${this.id}`);
+			if (DEBUGGING) {
+				console.warn(`Retreating due to bad odds: ${this.id}`);
+			}
 			this.retreating = true;
 		}
 			
 		if (!this.retreating) {
-			console.log("Engaging:", this.engagingCollection.id);
+			if (DEBUGGING) {
+				console.log("Engaging:", this.engagingCollection.id);
+			}
 			for (let unit of this.units) {
 				let engageSuccess = unit.engage(this.engagingCollection, secondsElapsed);
 				if (!engageSuccess) {
