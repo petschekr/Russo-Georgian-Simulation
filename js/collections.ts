@@ -317,7 +317,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 				this.detectedCollections.add(collection);
 				console.warn("Detected collection:", collection.id);
 			}
-			else if (collection.eliminated || !turf.booleanPointInPolygon(collection.location, this.visibilityArea) && !this.engagingBecauseDamaged) {
+			else if (collection.eliminated || (!turf.booleanPointInPolygon(collection.location, this.visibilityArea) && !this.engagingBecauseDamaged)) {
 				// Remove unit from detected
 				this.detectedCollections.delete(collection);
 				if (collection === this.engagingCollection) {
@@ -351,7 +351,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			closestCollection = this.engagingCollection!;
 		}
 		if (!closestCollection) return;
-		if (this.waypoints[0] && turf.distance(this.waypoints[0].location, closestCollection.location, { units: "meters" }) < spreadDistance + recalculateDistance) return;
+		if (this.waypoints[0] && turf.distance(this.waypoints[0].location, closestCollection.location, { units: "meters" }) < this.maxVisibilityRange  / 2) return;
 
 		let bearingTargetToMe = turf.bearing(closestCollection.location, this.location);
 		const spread = 120; // degrees
