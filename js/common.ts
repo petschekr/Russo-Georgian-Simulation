@@ -409,6 +409,7 @@ export class Dispatcher {
 	};
 	private readonly output = document.getElementById("output") as HTMLTextAreaElement;
 	private readonly tickProgress = document.getElementById("tick-progress") as HTMLParagraphElement;
+	public finished = false;
 	public async tick(): Promise<void> {
 		this.time.setSeconds(this.time.getSeconds() + this.secondsPerTick);
 
@@ -451,10 +452,36 @@ export class Dispatcher {
 		if (this.tickCount > 0) {
 			this.tickProgress.textContent = `${unitsFinished.toLocaleString()} / ${this.entities.length.toLocaleString()} units finished`;
 		}
+		if (unitsFinished === this.entities.length) {
+			let damage = {
+				[Team.Georgia]: { eliminated: 0, casualties: 0 },
+				[Team.Russia]: { eliminated: 0, casualties: 0 },
+				[Team.SouthOssetia]: { eliminated: 0, casualties: 0 },
+			};
+			for (let collection of this.entities) {
+				if (!(collection instanceof AgentCollection)) continue;
+				if (collection.eliminated) {
+					damage[collection.team].eliminated++;
+					damage[collection.team].casualties += collection.crew * collection.maxUnitNumber;
+				}
+				else {
+					let totalNumber = collection.crew * collection.maxUnitNumber;
+					damage[collection.team].casualties += totalNumber - Math.ceil(totalNumber * (collection.health / collection.maxHealth));
+				}
+			}
+			this.output.value += `
+Simulation finished at tick ${this.tickCount}.
+(Collections destroyed / Casualties sustained)
+Georgia: (${damage[Team.Georgia].eliminated} / ${damage[Team.Georgia].casualties.toLocaleString()})
+Russia: (${damage[Team.Russia].eliminated} / ${damage[Team.Russia].casualties.toLocaleString()})
+S. Ossetia: (${damage[Team.SouthOssetia].eliminated} / ${damage[Team.SouthOssetia].casualties.toLocaleString()})`;
+
+			this.finished = true;
+		}
 
 		if (this.unitsEngaged.georgiansInCity === 0) {
 			if (!this.completedObjectives[Team.SouthOssetia]) {
-				this.output.value += `Tick ${this.tickCount}: South Ossetian objective completed (${this.unitsEngaged.southOssetiansInCity} South Ossetians in Tshkinvali)\n`;
+				this.output.value += `Tick ${this.tickCount}: South Ossetian objective completed\n`;
 				this.completedObjectives[Team.SouthOssetia] = true;
 			}
 		}
@@ -464,7 +491,7 @@ export class Dispatcher {
 		
 		if (this.unitsEngaged.georgiansInRegion === 0) {
 			if (!this.completedObjectives[Team.Russia]) {
-				this.output.value += `Tick ${this.tickCount}: Russian objective completed (${this.unitsEngaged.russiansInRegion} Russians in region)\n`;
+				this.output.value += `Tick ${this.tickCount}: Russian objective completed\n`;
 				this.completedObjectives[Team.Russia] = true;
 			}
 		}
@@ -474,7 +501,7 @@ export class Dispatcher {
 		
 		if (this.unitsEngaged.russiansInRegion === 0) {
 			if (!this.completedObjectives[Team.Georgia]) {
-				this.output.value += `Tick ${this.tickCount}: Georgian objective completed (${this.unitsEngaged.georgiansInRegion} Georgians in region)\n`;
+				this.output.value += `Tick ${this.tickCount}: Georgian objective completed\n`;
 				this.completedObjectives[Team.Georgia] = true;
 			}
 		}

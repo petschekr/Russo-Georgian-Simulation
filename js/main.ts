@@ -960,7 +960,14 @@ async function start() {
 		await dispatcher.tick();
 		timeElement.textContent = dispatcher.formattedTime;
 
-		if (!shouldStop) {
+		if (dispatcher.finished) {
+			stopButton.textContent = "Start";
+			if (currentUpdate !== null) {
+				window.clearTimeout(currentUpdate);
+			}
+			// TODO: advance to next
+		}
+		else if (!shouldStop) {
 			currentUpdate = window.setTimeout(update, tickDelay);
 			//window.requestAnimationFrame(update);
 		}

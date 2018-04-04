@@ -736,7 +736,7 @@ export class InfantrySquad extends Unit {
 	public location: Vector2;
 	
 	private static creationCount = 0;
-	protected memberCount: number = 30; // Soldiers in squad, multiply ammo by this
+	public static memberCount: number = 30; // Soldiers in squad, multiply ammo by this
 
 	public outOfAction = false;
 	public outOfActionDecay = 60 * 5;
@@ -774,12 +774,12 @@ export class InfantrySquad extends Unit {
 			canResupply: false
 		}]
 	];
-	public maxHealth = 100 * this.memberCount;
+	public maxHealth = 100 * InfantrySquad.memberCount;
 	public health = this.maxHealth;
 
 	constructor(location: Vector2, public container: AgentCollection<Unit>) {
 		super();
-		this.id = `InfantrySquad(${this.memberCount})_${InfantrySquad.creationCount++}`;
+		this.id = `InfantrySquad(${InfantrySquad.memberCount})_${InfantrySquad.creationCount++}`;
 		this.location = location;
 		this.fuzzLocation();
 	}
@@ -814,7 +814,7 @@ export class MountedInfantrySquad extends InfantrySquad {
 
 	constructor(location: Vector2, public container: AgentCollection<Unit>) {
 		super(location, container);
-		this.id = `MountedInfSquad(${this.memberCount})_${MountedInfantrySquad.creationCountSubclassed++}`;
+		this.id = `MountedInfSquad(${MountedInfantrySquad.memberCount})_${MountedInfantrySquad.creationCountSubclassed++}`;
 	}
 
 	public setSpeedForTerrain(grade: number, terrain: LandCover): void {

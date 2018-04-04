@@ -60,6 +60,9 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		}
 		return health / this.units.length;
 	}
+	public maxHealth: number = NaN;
+	public maxUnitNumber: number = 0;
+	public abstract readonly crew: number;
 
 	constructor(id: string, team: Team, private readonly defaultLocation: Vector2, waypoints: Waypoint[]) {
 		AgentCollection.instances.push(this);
@@ -79,16 +82,20 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			}
 			if (this.units.length > 0) {
 				this.maxVisibilityRange = this.units[0].visibility.range;
+				this.maxHealth = this.units[0].maxHealth;
 			}
 			else {
 				this.maxVisibilityRange = 0;
+				this.maxHealth = 0;
 			}
 		}
 		else {
 			this.units = [new unit(location, this)];
 			this.units[0].enableSingleUnitMode(unitNumber);
 			this.maxVisibilityRange = this.units[0].visibility.range;
+			this.maxHealth = this.units[0].maxHealth;
 		}
+		this.maxUnitNumber = unitNumber;
 	}
 
 	// Navigation occurs on the unit collection level and instructions get
@@ -502,10 +509,10 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 export class InfantryBattalion extends AgentCollection<InfantrySquad> {
 	public readonly type: UnitType;
+	public readonly crew = InfantrySquad.memberCount;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `InfantryBattalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`InfantryBattalion_${Team[team]}_${name}`, team, location, waypoints);
 
 		this.type = UnitType.Infantry;
 
@@ -523,10 +530,10 @@ export class MountedInfantryBattalion extends AgentCollection<MountedInfantrySqu
 			return UnitType.UnarmoredVehicle;
 		}
 	}
+	public readonly crew = MountedInfantrySquad.memberCount;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `MountedInfBattalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`MountedInfBattalion_${Team[team]}_${name}`, team, location, waypoints);
 
 		this.setUp(MountedInfantrySquad, unitNumber, location);
 	}
@@ -534,10 +541,10 @@ export class MountedInfantryBattalion extends AgentCollection<MountedInfantrySqu
 
 export class CobraBattalion extends AgentCollection<Cobra> {
 	public readonly type: UnitType;
+	public readonly crew = 7;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `CobraBattalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`CobraBattalion_${Team[team]}_${name}`, team, location, waypoints);
 		
 		this.type = UnitType.LightArmor;
 		
@@ -547,10 +554,10 @@ export class CobraBattalion extends AgentCollection<Cobra> {
 
 export class BTR80Battalion extends AgentCollection<BTR80> {
 	public readonly type: UnitType;
+	public readonly crew = 3;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `BTR80Battalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`BTR80Battalion_${Team[team]}_${name}`, team, location, waypoints);
 		
 		this.type = UnitType.LightArmor;
 		
@@ -560,10 +567,10 @@ export class BTR80Battalion extends AgentCollection<BTR80> {
 
 export class BMP2Battalion extends AgentCollection<BMP2> {
 	public readonly type: UnitType;
+	public readonly crew = 3;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `BMP2Battalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`BMP2Battalion_${Team[team]}_${name}`, team, location, waypoints);
 		
 		this.type = UnitType.LightArmor;
 		
@@ -573,10 +580,10 @@ export class BMP2Battalion extends AgentCollection<BMP2> {
 
 export class T55Battalion extends AgentCollection<TankT55> {
 	public readonly type: UnitType;
+	public readonly crew = 4;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `T55Battalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`T55Battalion_${Team[team]}_${name}`, team, location, waypoints);
 		
 		this.type = UnitType.HeavyArmor;
 		
@@ -586,10 +593,10 @@ export class T55Battalion extends AgentCollection<TankT55> {
 
 export class T62Battalion extends AgentCollection<TankT62> {
 	public readonly type: UnitType;
+	public readonly crew = 4;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `T62Battalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`T62Battalion_${Team[team]}_${name}`, team, location, waypoints);
 		
 		this.type = UnitType.HeavyArmor;
 
@@ -599,10 +606,10 @@ export class T62Battalion extends AgentCollection<TankT62> {
 
 export class T72Battalion extends AgentCollection<TankT72> {
 	public readonly type: UnitType;
+	public readonly crew = 3;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `T72Battalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`T72Battalion_${Team[team]}_${name}`, team, location, waypoints);
 		
 		this.type = UnitType.HeavyArmor;
 		
@@ -612,10 +619,10 @@ export class T72Battalion extends AgentCollection<TankT72> {
 
 export class D30Battalion extends AgentCollection<ArtilleryD30> {
 	public readonly type: UnitType;
+	public readonly crew = 3;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `D30Battalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`D30Battalion_${Team[team]}_${name}`, team, location, waypoints);
 		
 		this.type = UnitType.UnarmoredVehicle;
 		
@@ -625,10 +632,10 @@ export class D30Battalion extends AgentCollection<ArtilleryD30> {
 
 export class DANABattalion extends AgentCollection<ArtilleryDANA> {
 	public readonly type: UnitType;
+	public readonly crew = 3;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `DANABattalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`DANABattalion_${Team[team]}_${name}`, team, location, waypoints);
 		
 		this.type = UnitType.UnarmoredVehicle;
 		
@@ -638,10 +645,10 @@ export class DANABattalion extends AgentCollection<ArtilleryDANA> {
 
 export class AkatsiyaBattalion extends AgentCollection<Akatsiya> {
 	public readonly type: UnitType;
+	public readonly crew = 4;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `AkatsiyaBattalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`AkatsiyaBattalion_${Team[team]}_${name}`, team, location, waypoints);
 		
 		this.type = UnitType.UnarmoredVehicle;
 
@@ -651,10 +658,10 @@ export class AkatsiyaBattalion extends AgentCollection<Akatsiya> {
 
 export class MRLBattalion extends AgentCollection<MRLGrad> {
 	public readonly type: UnitType;
+	public readonly crew = 3;
 
 	constructor(location: Vector2, unitNumber: number, waypoints: Waypoint[], name: string, team: Team) {
-		let id = `ArtilleryBattalion_${Team[team]}_${name}`;
-		super(id, team, location, waypoints);
+		super(`MRLBattalion_${Team[team]}_${name}`, team, location, waypoints);
 		
 		this.type = UnitType.UnarmoredVehicle;
 
