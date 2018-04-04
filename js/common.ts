@@ -68,9 +68,9 @@ export class Utilities {
 			if (Math.abs(distanceDirect - distanceViaCurrentLocation) < 1) { // threshold: 1 meter
 				return true;
 			}
-			if (distanceViaCurrentLocation > lastDistance && Math.abs(distanceViaCurrentLocation - lastDistance) > 5) {
-				return false;
-			}
+			// if (distanceViaCurrentLocation > lastDistance && Math.abs(distanceViaCurrentLocation - lastDistance) > 5) {
+			// 	return false;
+			// }
 			lastDistance = distanceViaCurrentLocation;
 		}
 		return false;
