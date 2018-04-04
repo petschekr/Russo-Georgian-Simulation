@@ -257,6 +257,8 @@ export const TshkinvaliArea: _turf.Feature<_turf.Polygon> = {
 };
 
 function initializeUnits(interdictPercentage: number): Entity[] {
+	AgentCollection.instances = [];
+
 	if (DEBUGGING) {
 		// Return some fake debugging data that is easier to work with
 		return [
