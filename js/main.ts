@@ -926,12 +926,11 @@ async function start() {
 	const stopButton = document.getElementById("stop")!;
 	const resetButton = document.getElementById("reset")!;
 	let shouldStop = true;
-	let firstTime = true;
 	stopButton.addEventListener("click", () => {
 		shouldStop = !shouldStop;
 		if (!shouldStop) {
-			if (firstTime) {
-				firstTime = false;
+			if (isReset) {
+				isReset = false;
 				outputArea.value = `--- New simulation (iter: 1 / ${iterations.value}, slider: ${scenarioPercentage}%) ---\n`;
 			}
 			resetButton.style.display = "inline";
