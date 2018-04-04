@@ -423,7 +423,7 @@ export class Dispatcher {
 
 			// Check terminal conditions
 			if (entity instanceof AgentCollection) {
-				if (entity.eliminated || entity.waypoints.length === 0) {
+				if (entity.eliminated || entity.waypoints.length === 0 || !turf.booleanPointInPolygon(entity.location, SouthOssetiaArea)) {
 					unitsFinished++;
 				}
 				if (!entity.eliminated) {
