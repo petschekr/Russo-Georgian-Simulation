@@ -410,6 +410,7 @@ export class Dispatcher {
 	private readonly output = document.getElementById("output") as HTMLTextAreaElement;
 	private readonly tickProgress = document.getElementById("tick-progress") as HTMLParagraphElement;
 	public finished = false;
+	private readonly MAX_TICKS = 3000;
 	public async tick(): Promise<void> {
 		this.time.setSeconds(this.time.getSeconds() + this.secondsPerTick);
 
@@ -452,7 +453,7 @@ export class Dispatcher {
 		if (this.tickCount > 0) {
 			this.tickProgress.textContent = `${unitsFinished.toLocaleString()} / ${this.entities.length.toLocaleString()} units finished`;
 		}
-		if (unitsFinished === this.entities.length) {
+		if (unitsFinished === this.entities.length || this.tickCount >= this.MAX_TICKS) {
 			let damage = {
 				[Team.Georgia]: { eliminated: 0, casualties: 0 },
 				[Team.Russia]: { eliminated: 0, casualties: 0 },
