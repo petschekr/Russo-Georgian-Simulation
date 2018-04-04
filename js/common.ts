@@ -55,6 +55,26 @@ export class Utilities {
 	static fastDistance(location1: Vector2, location2: Vector2): number { // Returns in meters
 		return turf.distance(location1, location2, { units: "meters" });
 	}
+	static pointOnLine(point: Vector2, line: _turf.Feature<_turf.LineString>): boolean {
+		let lastDistance = Infinity;
+		
+		function getCoord (i: number): Vector2 {
+			return line.geometry!.coordinates[i] as Vector2;
+		};
+
+		for (let i = 0; i < line.geometry!.coordinates.length - 1; i++) {
+			let distanceDirect = Utilities.fastDistance(getCoord(i), getCoord(i + 1));
+			let distanceViaCurrentLocation = Utilities.fastDistance(point, getCoord(i)) + Utilities.fastDistance(point, getCoord(i + 1));
+			if (Math.abs(distanceDirect - distanceViaCurrentLocation) < 1) { // threshold: 1 meter
+				return true;
+			}
+			if (distanceViaCurrentLocation > lastDistance && Math.abs(distanceViaCurrentLocation - lastDistance) > 5) {
+				return false;
+			}
+			lastDistance = distanceViaCurrentLocation;
+		}
+		return false;
+	}
 	static weaponAtRangeScale(distance: number, range: number): number {
 		if (distance > range) return 0;
 		// Linear scale from 1 (at 0 distance) to 0.5 (at max distance)

@@ -94,8 +94,9 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	// Navigation occurs on the unit collection level and instructions get
 	// propogated downwards to the individual units
 	private currentTerrain: TerrainReturn[] = [];
-	public get _currentTerrain() { return this.currentTerrain; }
 	private currentGrade: number = 0;
+	private heightDiffs: number[] = [0];
+	public get _currentTerrain() { return this.currentTerrain; }
 	private async calculateNavigation(): Promise<void> {
 		if (this.waypoints.length <= 0) {
 			return;
@@ -104,14 +105,13 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		let next = this.waypoints[0];
 
 		let intermediatePath: _turf.Feature<_turf.LineString> = turf.lineString([this.location, this.location]);
-		let heightDiffs: number[] = [0];
 		const terrainSample = 500; // meters
 
 		const bestDirections = async (type: UnitType = this.type) => {
 			this.intermediatePoints = await getDirections(this.location, next.location, type);
 			intermediatePath = turf.lineString(this.intermediatePoints);
 			this.currentTerrain = await terrainAlongLine(intermediatePath, terrainSample);
-			heightDiffs = this.currentTerrain.map(terrain => terrain.elevation).map((ele, i, arr) => Math.abs(ele - arr[i - 1])).slice(1);
+			this.heightDiffs = this.currentTerrain.map(terrain => terrain.elevation).map((ele, i, arr) => Math.abs(ele - arr[i - 1])).slice(1);
 		}
 		await bestDirections();
 
@@ -123,7 +123,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			await bestDirections(UnitType.None);
 			if (isInefficient()) {
 				// Check if direct path is too steep
-				if (Math.max(...heightDiffs) / terrainSample <= this.units[0].maxClimbAbility) {
+				if (Math.max(...this.heightDiffs) / terrainSample <= this.units[0].maxClimbAbility) {
 					// Set path to be direct
 					this.intermediatePoints = [this.location, next.location];
 					intermediatePath = turf.lineString(this.intermediatePoints);
@@ -137,26 +137,17 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			}
 		}
 
-		dispatcher.layerData.get(this.team)!.path.set(this.id, intermediatePath);
-		
-		let allCoords = turf.getCoords(intermediatePath);
-		let start = allCoords[0] as Vector2;
-		let end = allCoords[allCoords.length - 1] as Vector2;
-		let distance = turf.distance(start, end, { units: "meters" });
-
-		// Rise / run
-		let elevation1 = this.currentTerrain[0].elevation;
-		let elevation2 = this.currentTerrain[this.currentTerrain.length - 1].elevation;
-		this.currentGrade = 0;
-		if (elevation1 !== null && elevation2 !== null) {
-			this.currentGrade = Math.abs(elevation2 - elevation1) / distance;
-			// 0 / 0 when duplicate waypoints exist
-			if (isNaN(this.currentGrade)) {
-				this.currentGrade = 0;
-			}
-			console.log(`Calculated grade for computed route (${elevation2 - elevation1} / ${distance}):`, this.currentGrade.toFixed(2));
+		let length = Utilities.fastDistance(this.currentTerrain[0].location, this.currentTerrain[1].location);
+		this.currentGrade = this.heightDiffs[0] / length;
+		if (length < 50) {
+			// For very short segments (< 50 meters) set grade to 0 so that it doesn't get exaggerated by small changes in elevation
+			this.currentGrade = 0;
 		}
 
+		console.log(`Calculated navigation for route of ${turf.length(intermediatePath).toFixed(1)} km`);
+
+		dispatcher.layerData.get(this.team)!.path.set(this.id, intermediatePath);
+		
 		this.navigationCalculated = true;
 	}
 
@@ -203,9 +194,20 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		let finishedNavigation = 0;
 		let unitVisibilties: GeoFeature<_turf.helpers.Polygon>[] = [];
 		if (this.currentTerrain.length > 0) {
-			if (this.currentTerrain[1] && Utilities.fastDistance(this.location, this.currentTerrain[0].location) >= Utilities.fastDistance(this.location, this.currentTerrain[1].location)) {
+			while (
+				this.currentTerrain[1] && this.currentTerrain[2]
+				&& this.units.length > 0
+				&& !Utilities.pointOnLine(this.currentTerrain[1].location, this.units[0].path)
+			) {
 				// Point reached, move on
+				let length = Utilities.fastDistance(this.currentTerrain[1].location, this.currentTerrain[2].location);
 				this.currentTerrain.shift();
+				this.heightDiffs.shift();
+				this.currentGrade = this.heightDiffs[0] / length;
+				if (length < 50) {
+					// For very short segments (< 50 meters) set grade to 0 so that it doesn't get exaggerated by small changes in elevation
+					this.currentGrade = 0;
+				}
 			}
 		}
 		for (let unit of this.units) {

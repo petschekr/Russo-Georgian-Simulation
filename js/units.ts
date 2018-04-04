@@ -41,7 +41,7 @@ export abstract class Unit implements Entity {
 	public abstract health: number; // Health points
 	public abstract maxHealth: number;
 
-	private path: _turf.helpers.Feature<_turf.helpers.LineString, _turf.helpers.Properties> = turf.lineString([[0, 0], [0, 0]]);
+	public path: _turf.helpers.Feature<_turf.helpers.LineString, _turf.helpers.Properties> = turf.lineString([[0, 0], [0, 0]]);
 	private destination: Waypoint = { location: [0, 0] };
 	private destinationArrived = true;
 	public get traveling() { return !this.destinationArrived }
