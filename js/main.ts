@@ -889,6 +889,9 @@ async function start() {
 	const scenarioValue = document.getElementById("scenario-value") as HTMLSpanElement;
 	let scenarioPercentage: number = 0;
 
+	let iteration = 0;
+	const iterations = document.getElementById("iterations") as HTMLInputElement;
+
 	function initialize() {
 		timeElement.textContent = "Initializing...";
 		tickProgress.textContent = "";
@@ -923,9 +926,14 @@ async function start() {
 	const stopButton = document.getElementById("stop")!;
 	const resetButton = document.getElementById("reset")!;
 	let shouldStop = true;
+	let firstTime = true;
 	stopButton.addEventListener("click", () => {
 		shouldStop = !shouldStop;
 		if (!shouldStop) {
+			if (firstTime) {
+				firstTime = false;
+				outputArea.value = `--- New simulation (iter: 1 / ${iterations.value}, slider: ${scenarioPercentage}%) ---\n`;
+			}
 			resetButton.style.display = "inline";
 			stopButton.textContent = "Stop";
 			scenarioSlider.disabled = true;
@@ -964,17 +972,22 @@ async function start() {
 		timeElement.textContent = dispatcher.formattedTime;
 
 		if (dispatcher.finished && automate.checked) {
+			iteration++;
+			shouldStop = true;
 			stopButton.textContent = "Start";
 			if (currentUpdate !== null) {
 				window.clearTimeout(currentUpdate);
 			}
 			if (scenarioPercentage < parseFloat(scenarioSlider.max)) {
 				// Save and restore the output
-				let output = outputArea.value + "\n--- Next simulation ---\n";
+				let output = outputArea.value;
 				reset();
-				scenarioSlider.value = (scenarioPercentage + parseFloat(scenarioSlider.step)).toString();
+				if (iteration >= parseInt(iterations.value, 10)) {
+					scenarioSlider.value = (scenarioPercentage + parseFloat(scenarioSlider.step)).toString();
+					iteration = 0;
+				}
 				sliderSet();
-				outputArea.value = output;
+				outputArea.value = output + `\n\n--- New simulation (iter: ${iteration + 1} / ${iterations.value}, slider: ${scenarioPercentage}%) ---\n`;
 				shouldStop = false;
 				resetButton.style.display = "inline";
 				stopButton.textContent = "Stop";
