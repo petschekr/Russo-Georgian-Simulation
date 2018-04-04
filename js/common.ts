@@ -108,7 +108,7 @@ export class Dispatcher {
 
 	public entities: Entity[];
 	
-	constructor(start: Date, entities: Entity[]) {
+	constructor(start: Date, entities: Entity[], private scenarioPercentage: number) {
 		// Clone don't copy the start date object
 		this.time = new Date(start.valueOf());
 		this.entities = entities;
@@ -446,7 +446,7 @@ export class Dispatcher {
 			}
 
 			if (this.tickCount === 0) {
-				this.tickProgress.textContent = `${i} / ${this.entities.length.toLocaleString()} subticks processed`;
+				this.tickProgress.textContent = `${i + 1} / ${this.entities.length.toLocaleString()} subticks processed`;
 			}
 		}
 		if (this.tickCount > 0) {
@@ -470,7 +470,7 @@ export class Dispatcher {
 				}
 			}
 			this.output.value += `
-Simulation finished at tick ${this.tickCount}.
+Simulation finished (tick: ${this.tickCount}, interdicting: ${this.scenarioPercentage.toFixed(0)}%)
 (Collections destroyed / Casualties sustained)
 Georgia: (${damage[Team.Georgia].eliminated} / ${damage[Team.Georgia].casualties.toLocaleString()})
 Russia: (${damage[Team.Russia].eliminated} / ${damage[Team.Russia].casualties.toLocaleString()})

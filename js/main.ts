@@ -883,6 +883,7 @@ async function start() {
 	const timeElement = document.getElementById("time")!;
 	const outputArea = document.getElementById("output") as HTMLTextAreaElement;
 	const tickProgress = document.getElementById("tick-progress") as HTMLParagraphElement;
+	const automate = document.getElementById("automate") as HTMLInputElement;
 
 	const scenarioSlider = document.getElementById("scenario") as HTMLInputElement;
 	const scenarioValue = document.getElementById("scenario-value") as HTMLSpanElement;
@@ -907,15 +908,16 @@ async function start() {
 			return prev;
 		}, 0);
 		console.info(`Initialized with ${units.length.toLocaleString()} collections and ${unitCount.toLocaleString()} units`);
-		dispatcher = new Dispatcher(startDate, units);
+		dispatcher = new Dispatcher(startDate, units, scenarioPercentage);
 		timeElement.textContent = dispatcher.formattedTime;
 		outputArea.value = "";
 	}
-	scenarioSlider.addEventListener("input", () => {
+	function sliderSet() {
 		scenarioPercentage = parseFloat(scenarioSlider.value);
 		scenarioValue.textContent = scenarioPercentage.toString();
 		initialize();
-	});
+	}
+	scenarioSlider.addEventListener("input", sliderSet);
 	initialize();
 
 	const stopButton = document.getElementById("stop")!;
@@ -936,7 +938,7 @@ async function start() {
 			}
 		}
 	});
-	resetButton.addEventListener("click", () => {
+	function reset() {
 		isReset = true;
 		shouldStop = true;
 		if (currentUpdate !== null) {
@@ -946,7 +948,8 @@ async function start() {
 		resetButton.style.display = "none";
 		scenarioSlider.disabled = false;
 		initialize();
-	})
+	}
+	resetButton.addEventListener("click", reset);
 
 	const tickDelayBox = document.getElementById("tick-delay") as HTMLInputElement;
 	let tickDelay = parseInt(tickDelayBox.value, 10);
@@ -960,12 +963,24 @@ async function start() {
 		await dispatcher.tick();
 		timeElement.textContent = dispatcher.formattedTime;
 
-		if (dispatcher.finished) {
+		if (dispatcher.finished && automate.checked) {
 			stopButton.textContent = "Start";
 			if (currentUpdate !== null) {
 				window.clearTimeout(currentUpdate);
 			}
-			// TODO: advance to next
+			if (scenarioPercentage < parseFloat(scenarioSlider.max)) {
+				// Save and restore the output
+				let output = outputArea.value + "\n--- Next simulation ---\n";
+				reset();
+				scenarioSlider.value = (scenarioPercentage + parseFloat(scenarioSlider.step)).toString();
+				sliderSet();
+				outputArea.value = output;
+				shouldStop = false;
+				resetButton.style.display = "inline";
+				stopButton.textContent = "Stop";
+				scenarioSlider.disabled = true;
+				update();
+			}
 		}
 		else if (!shouldStop) {
 			currentUpdate = window.setTimeout(update, tickDelay);

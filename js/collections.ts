@@ -114,7 +114,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		let next = this.waypoints[0];
 
 		let intermediatePath: _turf.Feature<_turf.LineString> = turf.lineString([this.location, this.location]);
-		const terrainSample = 500; // meters
+		const terrainSample = 1000; // meters
 
 		const bestDirections = async (type: UnitType = this.type) => {
 			this.intermediatePoints = await getDirections(this.location, next.location, type);
