@@ -153,18 +153,18 @@ export abstract class Unit implements Entity {
 	protected speedForTerrain(grade: number, gradeCoefficient: number, terrain: LandCover): number {
 		let speed = this.maxSpeed * Math.exp(gradeCoefficient * grade);
 		if (grade > this.maxClimbAbility) {
-			console.error(`Max grade exceeded. Speed will be 0. ${this.id}`);
-			speed = 0;
+			speed = 2.2; // ~5 mph minimum
 		}
-		// TODO: actually use terrain somehow
-		if (terrain === "urban") {
-			speed *= this.movement.urban;
-		}
-		if (terrain === "wood") {
-			speed *= this.movement.forest;
-		}
-		if (terrain === "crop" || terrain === "grass" || terrain === "scrub") {
-			speed *= this.movement.steppe;
+		else {
+			if (terrain === "urban") {
+				speed *= this.movement.urban;
+			}
+			if (terrain === "wood") {
+				speed *= this.movement.forest;
+			}
+			if (terrain === "crop" || terrain === "grass" || terrain === "scrub") {
+				speed *= this.movement.steppe;
+			}
 		}
 
 		return speed;
