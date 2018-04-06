@@ -851,13 +851,13 @@ async function start() {
 		}
 
 		units = initializeUnits(scenarioPercentage);
-		let unitCount = units.reduce((prev, collection) => {
+		let [unitCount, people] = units.reduce((prev, collection) => {
 			if (collection instanceof AgentCollection) {
-				return prev + collection.units.length;
+				return [prev[0] + collection.units.length, prev[1] + collection.crew * collection.maxUnitNumber];
 			}
 			return prev;
-		}, 0);
-		console.info(`Initialized with ${units.length.toLocaleString()} collections and ${unitCount.toLocaleString()} units`);
+		}, [0, 0]);
+		console.info(`Initialized with ${units.length.toLocaleString()} collections and ${unitCount.toLocaleString()} units representing ${people.toLocaleString()} soldiers`);
 		dispatcher = new Dispatcher(startDate, units, scenarioPercentage);
 		timeElement.textContent = dispatcher.formattedTime;
 		outputArea.value = "";
