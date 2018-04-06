@@ -60,6 +60,13 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		}
 		return health / this.units.length;
 	}
+
+	get maxWeaponRange(): number {
+		if (this.units.length === 0) {
+			return this.maxVisibilityRange;
+		}
+		return Math.max(...this.units[0].weapons.map(weapon => weapon[0].range));
+	}
 	public maxHealth: number = NaN;
 	public maxUnitNumber: number = 0;
 	public abstract readonly crew: number;
@@ -302,7 +309,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 		const detectionThreshold = 0.7;
 		const spreadDistance = 300; // meters
-		const recalculateDistance = 200; // meters;
+		const recalculateDistance = Math.min(this.maxVisibilityRange / 2, this.maxWeaponRange); // meters
 
 		let otherCollections = AgentCollection.instances.filter(instance => instance.id !== this.id && Utilities.isEnemy(this.team, instance.team));
 		for (let collection of otherCollections) {
@@ -357,7 +364,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			closestCollection = this.engagingCollection!;
 		}
 		if (!closestCollection) return;
-		if (this.waypoints[0] && turf.distance(this.waypoints[0].location, closestCollection.location, { units: "meters" }) < this.maxVisibilityRange  / 2) return;
+		if (this.waypoints[0] && Utilities.fastDistance(this.waypoints[0].location, closestCollection.location) < recalculateDistance) return;
 
 		let bearingTargetToMe = turf.bearing(closestCollection.location, this.location);
 		const spread = 120; // degrees
@@ -400,7 +407,6 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			this.engagingCollection = null;
 			return;
 		}
-		if (this.retreating) return;
 		// Retreat if bad odds
 		if (AgentCollection.areBadOdds(this, this.engagingCollection) && !this.retreating) {
 			if (DEBUGGING) {
@@ -415,7 +421,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			}
 			for (let unit of this.units) {
 				let engageSuccess = unit.engage(this.engagingCollection, secondsElapsed);
-				if (!engageSuccess) {
+				if (!engageSuccess && this.engagingBecauseDamaged) {
 					this.retreating = true;
 					console.warn(`Retreating because under fire but no way to strike back: ${this.id}`);
 				}
