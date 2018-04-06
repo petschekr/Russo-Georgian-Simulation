@@ -190,9 +190,6 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			this.navigationCalculated = false;
 			this.navigating = false;
 			if (this.waypoints.length === 0) {
-				if (DEBUGGING) {
-					console.log(`${this.id} is done with navigation!`);
-				}
 				// Hide intermediate points path
 				dispatcher.layerData.get(this.team)!.path.delete(this.id);
 			}
