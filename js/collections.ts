@@ -437,12 +437,11 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 			// Remap waypoints around enemy visibility area
 			if (this.waypoints.length > 0) {
-				// Bearings 0 and 0 form a circle
-				let around = turf.lineArc(this.engagingCollection.location, detectionRange * 1.25 / 1000, 0, 0);
-				for (let [i, waypoint] of this.waypoints.entries()) {
+				for (let waypoint of this.waypoints) {
 					if (turf.booleanPointInPolygon(waypoint.location, this.engagingCollection.visibilityArea)) {
-						// Remap point to outside circle
-						this.waypoints[i].location = Utilities.pointToVector(turf.nearestPointOnLine(around, waypoint.location, { units: "meters" }));
+						let bearing = turf.bearing(this.engagingCollection.location, waypoint.location);
+						let distance = turf.distance(this.engagingCollection.location, waypoint.location, { units: "meters" });
+						waypoint.location = Utilities.pointToVector(turf.destination(waypoint.location, (detectionRange - distance) * 1.25, bearing, { units: "meters" }));
 					}
 				}
 			}
