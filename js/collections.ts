@@ -445,20 +445,6 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 					}
 				}
 			}
-			// Don't take a longer route after remapping
-			if (this.waypoints.length >= 2 && Utilities.fastDistance(this.location, this.waypoints[0].location) > Utilities.fastDistance(this.location, this.waypoints[1].location)) {
-				this.waypoints.shift();
-			}
-			// if (this.waypoints[0]) {
-			// 	let bearingThemToDest = turf.bearing(this.engagingCollection.location, this.waypoints[0].location);
-			// 	let around = turf.lineArc(this.engagingCollection.location, detectionRange * 1.25 / 1000, bearingThemToMe, bearingThemToDest);
-			// 	// Take off non-applicable starting point
-			// 	this.waypoints.shift();
-			// 	turf.coordEach(around, p => {
-			// 		this.waypoints.unshift({ location: p as Vector2 });
-			// 	});
-			// }
-
 			
 			this.navigating = false;
 			this.navigationCalculated = false;
