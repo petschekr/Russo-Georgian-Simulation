@@ -158,53 +158,59 @@ app.route("/russo-georgia/terrain/:coords").get(async (request, response) => {
 	
 	// Load tile data in parallel
 	let existingTiles = new Map<string, VTile>();
-	let data = await Promise.all(points.map(async point => {
-		let tilePoint = getTileXY(point, zoom);
-		let tile = existingTiles.get(tilePoint.join(","));
-		if (!tile) {
-			let data = await readFileAsync(`./tile-cache/terrain-${zoom}-${tilePoint[0]}-${tilePoint[1]}.mvt`);
-			tile = new VectorTile(new pbf(data));
-			existingTiles.set(tilePoint.join(","), tile);
-		}
+	try {
+		let data = await Promise.all(points.map(async point => {
+			let tilePoint = getTileXY(point, zoom);
+			let tile = existingTiles.get(tilePoint.join(","));
+			if (!tile) {
+				let data = await readFileAsync(`./tile-cache/terrain-${zoom}-${tilePoint[0]}-${tilePoint[1]}.mvt`);
+				tile = new VectorTile(new pbf(data));
+				existingTiles.set(tilePoint.join(","), tile);
+			}
 
-		let processed = {
-			location: point,
-			elevation: -Infinity,
-			type: LandCover.urban
-		};
+			let processed = {
+				location: point,
+				elevation: -Infinity,
+				type: LandCover.urban
+			};
 
-		if (tile.layers.contour) {
-			for (let i = 0; i < tile.layers.contour.length; i++) {
-				let feature: VTileFeature<{ele: number; index: number}> = tile.layers.contour.feature(i);
-				let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
-				if (processed.elevation < feature.properties.ele && turf.booleanPointInPolygon(processed.location, polygon)) {
-					processed.elevation = feature.properties.ele;
+			if (tile.layers.contour) {
+				for (let i = 0; i < tile.layers.contour.length; i++) {
+					let feature: VTileFeature<{ele: number; index: number}> = tile.layers.contour.feature(i);
+					let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
+					if (processed.elevation < feature.properties.ele && turf.booleanPointInPolygon(processed.location, polygon)) {
+						processed.elevation = feature.properties.ele;
+					}
 				}
 			}
-		}
-		else {
-			console.warn(`Tile ${tilePoint.join(", ")} (${point.join(", ")}) does not have contour layer`);
-		}
+			else {
+				console.warn(`Tile ${tilePoint.join(", ")} (${point.join(", ")}) does not have contour layer`);
+			}
 
-		if (tile.layers.landcover) {
-			for (let i = 0; i < tile.layers.landcover.length; i++) {
-				let feature: VTileFeature<{class: keyof typeof LandCover}> = tile.layers.landcover.feature(i);
-				let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
-				if (processed.type < LandCover[feature.properties.class] && turf.booleanPointInPolygon(processed.location, polygon)) {
-					processed.type = LandCover[feature.properties.class];
+			if (tile.layers.landcover) {
+				for (let i = 0; i < tile.layers.landcover.length; i++) {
+					let feature: VTileFeature<{class: keyof typeof LandCover}> = tile.layers.landcover.feature(i);
+					let polygon = feature.toGeoJSON(tilePoint[0], tilePoint[1], zoom);
+					if (processed.type < LandCover[feature.properties.class] && turf.booleanPointInPolygon(processed.location, polygon)) {
+						processed.type = LandCover[feature.properties.class];
+					}
 				}
 			}
-		}
-		else {
-			console.warn(`Tile ${tilePoint.join(", ")} (${point.join(", ")}) does not have landcover layer`);
-		}
+			else {
+				console.warn(`Tile ${tilePoint.join(", ")} (${point.join(", ")}) does not have landcover layer`);
+			}
 
-		return {
-			...processed,
-			type: LandCover[processed.type]
-		};
-	}));
-	response.send(data);
+			return {
+				...processed,
+				type: LandCover[processed.type]
+			};
+		}));
+		response.send(data);
+	}
+	catch (err) {
+		console.error(err);
+		response.status(415).send("Requested coordinate out of cached range");
+	}
 });
 
 const routers = {
