@@ -419,7 +419,8 @@ export class Dispatcher {
 		this.unitsEngaged.georgiansInRegion = 0;
 		this.unitsEngaged.russiansInRegion = 0;
 		let unitsFinished = 0;
-		for (let [i, entity] of this.entities.entries()) {
+		let subticksFinished = 0;
+		let subticks: Promise<void>[] = this.entities.map(async entity => {
 			await entity.tick(this.secondsPerTick);
 
 			// Check terminal conditions
@@ -447,9 +448,12 @@ export class Dispatcher {
 			}
 
 			if (this.tickCount === 0) {
-				this.tickProgress.textContent = `${i + 1} / ${this.entities.length.toLocaleString()} subticks processed`;
+				subticksFinished++;
+				this.tickProgress.textContent = `${subticksFinished} / ${this.entities.length.toLocaleString()} subticks processed`;
 			}
-		}
+		});
+		await Promise.all(subticks);
+
 		if (this.tickCount > 0) {
 			this.tickProgress.textContent = `${unitsFinished.toLocaleString()} / ${this.entities.length.toLocaleString()} units finished`;
 		}
