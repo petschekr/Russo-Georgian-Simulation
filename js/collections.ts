@@ -170,6 +170,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 	}
 
 	private unitsFinishedNavigating: boolean = false;
+	private waypointAlreadyDeleted: boolean = false;
 	public async tick(secondsElapsed: number): Promise<void> {
 		if (this.units.length === 0) {
 			this.eliminated = true;
@@ -185,7 +186,9 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 
 		if (this.waypoints[0] && this.unitsFinishedNavigating) {
 			// Destination reached (all units no longer traveling)
-			this.waypoints.shift();
+			if (!this.waypointAlreadyDeleted) {
+				this.waypoints.shift();
+			}
 			this.unitsFinishedNavigating = false;
 			this.navigationCalculated = false;
 			this.navigating = false;
@@ -197,6 +200,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 				console.log(`${this.id} moving to next objective. ${this.waypoints.length - 1} remaining.`);
 			}
 		}
+		this.waypointAlreadyDeleted = false;
 		if (!this.navigating && !this.navigationCalculated) {
 			await this.calculateNavigation();
 		}
@@ -375,6 +379,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 		let navigationLocation = turf.centroid(spreadLine);
 		
 		if (this.waypoints[0] && this.waypoints[0].temporary) {
+			this.waypointAlreadyDeleted = true;
 			this.waypoints.shift();
 		}
 		this.waypoints.unshift({ location: Utilities.pointToVector(navigationLocation), temporary: true });
