@@ -139,7 +139,7 @@ export abstract class AgentCollection<T extends Unit> implements Entity {
 			await bestDirections(UnitType.None);
 			if (isInefficient()) {
 				// Check if direct path is too steep
-				if (Math.max(...this.heightDiffs) / terrainSample <= this.units[0].maxClimbAbility) {
+				if (this.units.length > 0 && Math.max(...this.heightDiffs) / terrainSample <= this.units[0].maxClimbAbility) {
 					// Set path to be direct
 					this.intermediatePoints = [this.location, next.location];
 					intermediatePath = turf.lineString(this.intermediatePoints);
