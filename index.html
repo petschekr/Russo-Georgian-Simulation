@@ -8,10 +8,10 @@
         <link rel="stylesheet" href="https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css" />
         <script src="https://cdn.jsdelivr.net/npm/@turf/turf@5/turf.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js" integrity="sha256-9YAuB2VnFZNJ+lKfpaQ3dKQT9/C0j3VUla76hHbiVF8=" crossorigin="anonymous"></script>
-        <script src="system-production.js"></script>
-        <script src="dist.js"></script>
+        <script src="/russo-georgia/system-production.js"></script>
+        <script src="/russo-georgia/dist.js"></script>
         <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" /> 
-        <link rel="stylesheet" href="css/styles.css" />
+        <link rel="stylesheet" href="/russo-georgia/css/styles.css" />
     </head>
     <body>
         <div id="container">
@@ -25,9 +25,16 @@
                 <br />
 
                 <!-- Scenarios -->
-                <input type="range" id="scenario" min="0" max="100" step="6.25" value="0" />
+                <input type="range" id="scenario" min="0" max="100" step="5" value="0" />
                 <br />
                 <label for="scenario">Percentage to interdict: <span id="scenario-value">0</span>%</label>
+                <br />
+                <br />
+                <label for="automate">Automate slider:</label>
+                <input type="checkbox" id="automate" checked />
+                <br />
+                <label for="iterations">Iterations:</label>
+                <input type="number" id="iterations" min="1" step="1" value="1" />
                 <br />
                 <br />
 
@@ -50,8 +57,9 @@
                 <label for="show-visibility">Show collection visibility:</label>
                 <input type="checkbox" id="show-visibility" checked />
                 <br />
+                <p id="tick-progress"></p>
 
-                <textarea id="output" rows="5" placeholder="Simulation output displayed here" disabled></textarea>
+                <textarea id="output" rows="15" placeholder="Simulation output displayed here" disabled></textarea>
             </nav>
             <aside id="hover-info"></aside>
             <!-- Map content inserted here -->

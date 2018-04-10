@@ -1,7 +1,7 @@
 import { Vector2, Waypoint, Entity, Utilities, NAVIGATION_THRESHOLD } from "./common";
 import { AgentCollection } from "./collections";
 import { Weapon, Weapons, UnitType } from "./weapons";
-import { TerrainType } from "./mapdata";
+import { LandCover } from "./mapdata";
 
 import * as _turf from "@turf/turf";
 declare const turf: typeof _turf;
@@ -41,7 +41,7 @@ export abstract class Unit implements Entity {
 	public abstract health: number; // Health points
 	public abstract maxHealth: number;
 
-	private path: _turf.helpers.Feature<_turf.helpers.LineString, _turf.helpers.Properties> = turf.lineString([[0, 0], [0, 0]]);
+	public path: _turf.helpers.Feature<_turf.helpers.LineString, _turf.helpers.Properties> = turf.lineString([[0, 0], [0, 0]]);
 	private destination: Waypoint = { location: [0, 0] };
 	private destinationArrived = true;
 	public get traveling() { return !this.destinationArrived }
@@ -96,7 +96,10 @@ export abstract class Unit implements Entity {
 		}
 		//this.path.geometry!.coordinates.unshift(this.location);
 
-		if (turf.distance(this.location, this.destination.location, { units: "meters" }) < NAVIGATION_THRESHOLD) {
+		if (
+			turf.distance(this.location, this.destination.location, { units: "meters" }) < NAVIGATION_THRESHOLD
+			|| (this.path.geometry!.coordinates.length === 2 && Utilities.fastDistance(getCoord(0), getCoord(1)) === 0)
+		) {
 			// Destination arrived
 			this.destinationArrived = true;
 			// Spread out by fuzzing location
@@ -111,54 +114,60 @@ export abstract class Unit implements Entity {
 	}
 
 	public isEngaging: boolean = false;
-	public engage(collection: AgentCollection<Unit>, secondsElapsed: number): void {
+	public engage(collection: AgentCollection<Unit>, secondsElapsed: number): boolean {
 		// Find best weapon to engage with
 		let distanceToTarget = turf.distance(this.location, collection.location, { units: "meters" });
 
 		let bestWeapon: WeaponAmmunitionPair | undefined;
-		let bestWeaponDamagePerTick: number = 0;
 		for (let weapon of this.weapons) {
 			// Disqualifiers
 			if (distanceToTarget > weapon[0].range || weapon[1].total <= 0) continue;
 
-			let damagePerShot = weapon[0].efficacy.get(collection.type) || 0;
-			let damage = damagePerShot * weapon[0].fireRate / 60 * secondsElapsed * Math.min(1, weapon[1].total / weapon[0].fireRate);
-			if (damage > bestWeaponDamagePerTick) {
+			let firepower = weapon[0].efficacy.get(collection.type) || 0;
+			let bestFirepower = bestWeapon ? bestWeapon[0].efficacy.get(collection.type) || 0 : 0;
+
+			if (!bestWeapon && firepower > 0) {
 				bestWeapon = weapon;
-				bestWeaponDamagePerTick = damage;
+			}
+			else if (bestWeapon && firepower >= bestFirepower && weapon[0].fireRate >= bestWeapon[0].fireRate && weapon[0].accuracy >= bestWeapon[0].accuracy) {
+				bestWeapon = weapon;
 			}
 		}
-		if (!bestWeapon) return;
+		// Probably should retreat if no weapons are suitable
+		if (!bestWeapon) return false;
 
 		let damage = 0;
-		for (let shot = 0; shot < Math.min(bestWeapon[0].fireRate / 60 * secondsElapsed * this.actingAs, bestWeapon[1].total); shot++, bestWeapon[1].total--) {
+		for (let shot = 0; shot < bestWeapon[0].fireRate / 60 * secondsElapsed * (this.actingAs * this.health / this.maxHealth); shot++) {
 			if (Math.random() < bestWeapon[0].accuracy) {
-				damage += (bestWeapon[0].efficacy.get(collection.type) || 0) * ((bestWeapon[0].range - distanceToTarget) / bestWeapon[0].range);
+				let firepower = bestWeapon[0].efficacy.get(collection.type) || 0;
+				damage += firepower / bestWeapon[0].fireRate * Utilities.weaponAtRangeScale(distanceToTarget, bestWeapon[0].range);
 			}
+			// bestWeapon[1].total--;
 		}
-		console.log(`Applying ${damage} damage with ${bestWeapon[0].name}`);
+		//console.log(`Applying ${damage} damage with ${bestWeapon[0].name}`);
 		if (collection.damage(this.container, damage)) {
 			// Target destroyed
 			this.isEngaging = false;
 		}
+		return true;
 	}
 
-	public abstract setSpeedForTerrain(grade: number, terrain: TerrainType): void;
-	protected speedForTerrain(grade: number, gradeCoefficient: number, terrain: TerrainType): number {
+	public abstract setSpeedForTerrain(grade: number, terrain: LandCover): void;
+	protected speedForTerrain(grade: number, gradeCoefficient: number, terrain: LandCover): number {
 		let speed = this.maxSpeed * Math.exp(gradeCoefficient * grade);
 		if (grade > this.maxClimbAbility) {
-			console.error(`Max grade exceeded. Speed will be 0. ${this.id}`);
-			speed = 0;
+			speed = 2.2; // ~5 mph minimum
 		}
-		// TODO: actually use terrain somehow
-		if (terrain.urban) {
-			speed *= this.movement.urban;
-		}
-		if (terrain.wood) {
-			speed *= this.movement.forest;
-		}
-		if (terrain.crop || terrain.grass || terrain.scrub) {
-			speed *= this.movement.steppe;
+		else {
+			if (terrain === "urban") {
+				speed *= this.movement.urban;
+			}
+			if (terrain === "wood") {
+				speed *= this.movement.forest;
+			}
+			if (terrain === "crop" || terrain === "grass" || terrain === "scrub") {
+				speed *= this.movement.steppe;
+			}
 		}
 
 		return speed;
@@ -200,7 +209,7 @@ export class TankT55 extends Unit {
 	public blocksOthers = true;
 
 	// public readonly maxSpeed = 13; // ~30 miles per hour
-	public readonly maxSpeed = 4.47;
+	public readonly maxSpeed = 13;
 	public speed = this.maxSpeed;
 
 	public rotationSpeed = Infinity;
@@ -208,23 +217,23 @@ export class TankT55 extends Unit {
 	public movement = {
 		steppe: 0.7,
 		forest: 0.1,
-		urban: 0.25
+		urban: 0.2
 	};
 
 	public visibility = {
-		range: 1600,
+		range: 1400,
 		fieldOfView: Utilities.degreesToRadians(80)
 	};
 	
 	public weapons: WeaponAmmunitionPair[] = [
 		[Weapons.D10, {
 			magazine: 1,
-			total: 35,
+			total: 43,
 			canResupply: false
 		}],
 		[Weapons.SGMT, {
 			magazine: 250,
-			total: 500,
+			total: 1500,
 			canResupply: false
 		}]
 	];
@@ -238,7 +247,488 @@ export class TankT55 extends Unit {
 		this.fuzzLocation();
 	}
 
-	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+export class TankT62 extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.HeavyArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 14;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.7,
+		forest: 0.1,
+		urban: 0.2
+	};
+
+	public visibility = {
+		range: 1500,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.U5TS, {
+			magazine: 1,
+			total: 40,
+			canResupply: false
+		}],
+		[Weapons.PKMT, {
+			magazine: 250,
+			total: 2500,
+			canResupply: false
+		}]
+	];
+	public maxHealth = 100;
+	public health = this.maxHealth;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `T-62_${TankT62.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+
+export class TankT72 extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.HeavyArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 22;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.7,
+		forest: 0.1,
+		urban: 0.2
+	};
+
+	public visibility = {
+		range: 1600,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.D81, {
+			magazine: 1,
+			total: 39,
+			canResupply: false
+		}],
+		[Weapons.PKMT, {
+			magazine: 250,
+			total: 1500,
+			canResupply: false
+		}]
+	];
+	public maxHealth = 100;
+	public health = this.maxHealth;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `T-72_${TankT72.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+export class ArtilleryDANA extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.UnarmoredVehicle;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 22;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.5;
+	public movement = {
+		steppe: 0.8,
+		forest: 0.2,
+		urban: 0.3
+	};
+
+	public visibility = {
+		range: 1000,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.DANA, {
+			magazine: 1,
+			total: 60,
+			canResupply: false
+		}],
+		[Weapons.DShkM, {
+			magazine: 50,
+			total: 2000,
+			canResupply: false
+		}]
+	];
+	public maxHealth = 100;
+	public health = this.maxHealth;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `DANA_${ArtilleryDANA.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+export class Akatsiya extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.LightArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 18;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.7,
+		forest: 0.2,
+		urban: 0.3
+	};
+
+	public visibility = {
+		range: 1200,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.D22, {
+			magazine: 1,
+			total: 46,
+			canResupply: false
+		}],
+		[Weapons.PKMT, {
+			magazine: 50,
+			total: 1500,
+			canResupply: false
+		}]
+	];
+	public maxHealth = 100;
+	public health = this.maxHealth;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `Akatsita_${Akatsiya.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+export class MRLGrad extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.UnarmoredVehicle;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 21;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.5;
+	public movement = {
+		steppe: 0.8,
+		forest: 0.2,
+		urban: 0.3
+	};
+
+	public visibility = {
+		range: 800,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.Grad, {
+			magazine: 40,
+			total: 80,
+			canResupply: false
+		}]
+	];
+	public maxHealth = 100;
+	public health = this.maxHealth;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `Grad_${MRLGrad.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+export class ArtilleryD30 extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.UnarmoredVehicle;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 17;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.4;
+	public movement = {
+		steppe: 0.8,
+		forest: 0.1,
+		urban: 0.2
+	};
+
+	public visibility = {
+		range: 1200,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.D30, {
+			magazine: 1,
+			total: 90,
+			canResupply: false
+		}]
+	];
+	public maxHealth = 100;
+	public health = this.maxHealth;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `D30_${ArtilleryD30.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+export class BTR80 extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.LightArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 24;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.7,
+		forest: 0.3,
+		urban: 0.3
+	};
+
+	public visibility = {
+		range: 700,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.KPVT, {
+			magazine: 50,
+			total: 500,
+			canResupply: false
+		}],
+		[Weapons.PKMT, {
+			magazine: 250,
+			total: 2000,
+			canResupply: false
+		}]
+	];
+	public maxHealth = 100;
+	public health = this.maxHealth;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `BTR80_${BTR80.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+export class BMP2 extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.LightArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 18;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.7,
+		forest: 0.2,
+		urban: 0.25
+	};
+
+	public visibility = {
+		range: 900,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.S2A42, {
+			magazine: 50,
+			total: 500,
+			canResupply: false
+		}],
+		[Weapons.PKMT, {
+			magazine: 250,
+			total: 2000,
+			canResupply: false
+		}]
+	];
+	public maxHealth = 100;
+	public health = this.maxHealth;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `BMP2_${BMP2.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
+		this.speed = this.speedForTerrain(grade, -4, terrain);
+	}
+}
+
+export class Cobra extends Unit {
+	public readonly id: string;
+	public readonly type = UnitType.LightArmor;
+	public location: Vector2;
+
+	private static creationCount = 0;
+
+	public outOfAction = false;
+	public outOfActionDecay = 60 * 15;
+	public blocksOthers = true;
+
+	// public readonly maxSpeed = 13; // ~30 miles per hour
+	public readonly maxSpeed = 32;
+	public speed = this.maxSpeed;
+
+	public rotationSpeed = Infinity;
+	public maxClimbAbility = 0.6;
+	public movement = {
+		steppe: 0.8,
+		forest: 0.4,
+		urban: 0.4
+	};
+
+	public visibility = {
+		range: 600,
+		fieldOfView: Utilities.degreesToRadians(80)
+	};
+	
+	public weapons: WeaponAmmunitionPair[] = [
+		[Weapons.NSV, {
+			magazine: 50,
+			total: 500,
+			canResupply: false
+		}]
+	];
+	public maxHealth = 100;
+	public health = this.maxHealth;
+
+	constructor(location: Vector2, public container: AgentCollection<Unit>) {
+		super();
+		this.id = `Cobra_${Cobra.creationCount++}`;
+		this.location = location;
+		this.fuzzLocation();
+	}
+
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
 		this.speed = this.speedForTerrain(grade, -4, terrain);
 	}
 }
@@ -249,7 +739,7 @@ export class InfantrySquad extends Unit {
 	public location: Vector2;
 	
 	private static creationCount = 0;
-	protected memberCount: number = 4; // Soldiers in squad, multiply ammo by this
+	public static memberCount: number = 30; // Soldiers in squad, multiply ammo by this
 
 	public outOfAction = false;
 	public outOfActionDecay = 60 * 5;
@@ -260,8 +750,8 @@ export class InfantrySquad extends Unit {
 	public rotationSpeed = Infinity;
 	public maxClimbAbility = 1;
 	public movement = {
-		steppe: 0.95,
-		forest: 0.9,
+		steppe: 0.9,
+		forest: 0.8,
 		urban: 0.6
 	};
 
@@ -274,21 +764,31 @@ export class InfantrySquad extends Unit {
 		[Weapons.AK74, {
 			magazine: 30,
 			total: 180,
+			canResupply: true
+		}],
+		[Weapons.RGD5, {
+			magazine: 1,
+			total: 10,
+			canResupply: true
+		}],
+		[Weapons.RPG, {
+			magazine: 1,
+			total: 5,
 			canResupply: false
 		}]
 	];
-	public maxHealth = 100 * this.memberCount;
+	public maxHealth = 100 * InfantrySquad.memberCount;
 	public health = this.maxHealth;
 
 	constructor(location: Vector2, public container: AgentCollection<Unit>) {
 		super();
-		this.id = `InfantrySquad(${this.memberCount})_${InfantrySquad.creationCount++}`;
+		this.id = `InfantrySquad(${InfantrySquad.memberCount})_${InfantrySquad.creationCount++}`;
 		this.location = location;
 		this.fuzzLocation();
 	}
 
 	// Source for humans: http://mtntactical.com/research/walking-uphill-10-grade-cuts-speed-13not-12/
-	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
 		this.speed = this.speedForTerrain(grade, -1.5, terrain);
 	}
 }
@@ -317,10 +817,10 @@ export class MountedInfantrySquad extends InfantrySquad {
 
 	constructor(location: Vector2, public container: AgentCollection<Unit>) {
 		super(location, container);
-		this.id = `MountedInfSquad(${this.memberCount})_${MountedInfantrySquad.creationCountSubclassed++}`;
+		this.id = `MountedInfSquad(${MountedInfantrySquad.memberCount})_${MountedInfantrySquad.creationCountSubclassed++}`;
 	}
 
-	public setSpeedForTerrain(grade: number, terrain: TerrainType): void {
+	public setSpeedForTerrain(grade: number, terrain: LandCover): void {
 		let coefficient = this.container.type === UnitType.Infantry ? -1.5 : -4;
 		this._speed = this.speedForTerrain(grade, coefficient, terrain);
 	}

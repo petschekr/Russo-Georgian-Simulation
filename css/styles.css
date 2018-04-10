@@ -4,6 +4,7 @@ html, body {
     padding: 0;
     height: 100%;
     width: 100%;
+    overflow: hidden;
 }
 #container {
     height: 100%;
@@ -26,7 +27,7 @@ html, body {
     width: 100%;
 }
 
-#tick-delay {
+#tick-delay, #iterations {
     width: 45px;
 }
 

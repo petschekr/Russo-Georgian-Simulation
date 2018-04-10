@@ -59,3 +59,14 @@ typings/
 
 dist.js
 dist.js.map
+server\.js
+
+server\.js\.map
+
+tile-cache/
+
+\.vscode/
+
+directions-cache/
+
+osrm/
